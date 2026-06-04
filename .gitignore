@@ -1,0 +1,7 @@
+# Assistant / session tooling — not part of the learning repo
+.claude/
+.remember/
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
