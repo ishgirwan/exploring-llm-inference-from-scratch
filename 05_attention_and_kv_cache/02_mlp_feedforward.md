@@ -2,11 +2,11 @@
 
 This finishes the transformer layer. [Attention](01_attention.md) was one of the
 two sub-blocks inside the layer graph from
-[end-to-end §4](../02_cuda_software_stack/02_end_to_end_inference.md#4-stage-2--prefill-a-transformer-layer-is-a-graph-of-kernels);
+[end-to-end §5](../02_cuda_software_stack/02_end_to_end_inference.md#5-stage-2--prefill-a-transformer-layer-is-a-graph-of-kernels);
 this is the other one — the *feed-forward network* (FFN), also called the *MLP*
 (multi-layer perceptron). Between them they account for essentially all of a
 layer's weights and compute, so once attention and the MLP both make sense, the
-whole `end-to-end §4` layer graph is explained.
+whole `end-to-end §5` layer graph is explained.
 
 Same as the rest of this chapter, it's the map: I work out what the MLP computes
 and why it dominates the weight budget, so that the M9 build and the M15
@@ -14,7 +14,7 @@ quantization work start from known numbers.
 
 Prerequisites: [Attention and the KV cache](01_attention.md) (its §6 prefill-vs-decode
 shapes and §8 two-walls discussion), and
-[end-to-end §4](../02_cuda_software_stack/02_end_to_end_inference.md#4-stage-2--prefill-a-transformer-layer-is-a-graph-of-kernels).
+[end-to-end §5](../02_cuda_software_stack/02_end_to_end_inference.md#5-stage-2--prefill-a-transformer-layer-is-a-graph-of-kernels).
 Next: M9 in the [Roadmap](../ROADMAP.md).
 
 ## 1. What the MLP is for
@@ -91,7 +91,7 @@ The *activation* is an elementwise function — it's applied to each entry of th
 
 All three are cheap elementwise ops that run on the FP lanes
 ([execution model §4](../01_hardware_fundamentals/03_gpu_model.md#4-the-sm-is-the-gpu-execution-unit)), not the Tensor Cores — the same glue-work split
-[end-to-end §4](../02_cuda_software_stack/02_end_to_end_inference.md#4-stage-2--prefill-a-transformer-layer-is-a-graph-of-kernels)
+[end-to-end §5](../02_cuda_software_stack/02_end_to_end_inference.md#5-stage-2--prefill-a-transformer-layer-is-a-graph-of-kernels)
 drew for the whole layer. A quick numeric feel for SiLU:
 
 ```text
@@ -172,7 +172,7 @@ kinds of arithmetic unit:
 ```
 
 These are the `MLP up proj`, `activation`, and `MLP down proj` boxes from
-[end-to-end §4](../02_cuda_software_stack/02_end_to_end_inference.md#4-stage-2--prefill-a-transformer-layer-is-a-graph-of-kernels)
+[end-to-end §5](../02_cuda_software_stack/02_end_to_end_inference.md#5-stage-2--prefill-a-transformer-layer-is-a-graph-of-kernels)
 — the projections are GEMMs through cuBLAS on the Tensor Cores, the activation
 and gate are cheap elementwise kernels on the FP lanes. A small shape-walk for
 one token, `d_model = 4`, `d_ff = 8` (toy widths):
@@ -245,7 +245,7 @@ squarely on the **first** one:
      - bytes read per token ≈ the MLP's weights (the bulk of the model, §6)
      - FIXED: does not grow with context length
      - SHAREABLE across a batch: read each weight once, use it for every
-       sequence in the batch (end-to-end §9) — so batching amortizes it
+       sequence in the batch (end-to-end §10) — so batching amortizes it
 ```
 
 This is the *opposite* profile from attention's KV-cache wall ([attention §8](01_attention.md#8-why-decode-attention-is-memory-bound--and-its-a-different-wall)),
@@ -260,7 +260,7 @@ projection of `d_model × d_ff` does `2·d_model·d_ff` FLOPs and reads
 `2·d_model·d_ff` bytes (fp16), used once for the single token
 ([execution model §15](../01_hardware_fundamentals/03_gpu_model.md#15-why-llm-inference-is-often-memory-bound)). The Tensor Cores idle, waiting on the weight stream —
 exactly the decode picture from
-[end-to-end §6](../02_cuda_software_stack/02_end_to_end_inference.md#6-stage-3--decode-the-autoregressive-loop),
+[end-to-end §7](../02_cuda_software_stack/02_end_to_end_inference.md#7-stage-3--decode-the-autoregressive-loop),
 and since the MLP is most of the weights, it's most of that wait.
 
 ## 8. What to carry forward

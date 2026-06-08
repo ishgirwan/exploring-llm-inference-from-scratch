@@ -2,10 +2,10 @@
 
 [The LM head](03_embedding_and_lm_head.md) left us with *logits* — one raw,
 unbounded score per vocabulary token, for the position we're generating. But the
-decode loop ([end-to-end §6](../02_cuda_software_stack/02_end_to_end_inference.md#6-stage-3--decode-the-autoregressive-loop))
+decode loop ([end-to-end §7](../02_cuda_software_stack/02_end_to_end_inference.md#7-stage-3--decode-the-autoregressive-loop))
 needs **one token ID** to feed back in. *Sampling* is the step that closes that
 gap: scores in, one chosen token out. The end-to-end map drew this as "sample one
-token" and `end-to-end §12` said "a sampling kernel picks one token ID from the
+token" and `end-to-end §11` said "a sampling kernel picks one token ID from the
 logits" — without ever saying how. This is how.
 
 It's the last piece of the forward pass, and the one with actual knobs a user
@@ -25,7 +25,7 @@ The logits are a vector as long as the vocabulary — 32,000 to 256,000 numbers
 — sitting in VRAM. Sampling turns that vector into one integer token ID. It
 runs **on the GPU**, right where the logits already are: shipping a 256k-long
 vector back to the CPU every single token, just to pick one entry, would waste the
-very bandwidth decode is starved for (`end-to-end §6`). So a *sampling kernel*
+very bandwidth decode is starved for (`end-to-end §7`). So a *sampling kernel*
 does it in place, per token, on the critical path of the loop.
 
 The pipeline is three conceptual steps — turn scores into probabilities, optionally

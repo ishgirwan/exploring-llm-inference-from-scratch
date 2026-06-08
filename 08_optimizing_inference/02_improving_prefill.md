@@ -2,19 +2,19 @@
 
 Prefill is the other half of inference: the one-shot pass that reads the whole
 prompt and fills the KV cache before the first output token comes out
-([end-to-end §4](../02_cuda_software_stack/02_end_to_end_inference.md#4-stage-2--prefill-a-transformer-layer-is-a-graph-of-kernels)).
+([end-to-end §5](../02_cuda_software_stack/02_end_to_end_inference.md#5-stage-2--prefill-a-transformer-layer-is-a-graph-of-kernels)).
 The previous doc was about prying decode off the memory wall. Prefill doesn't sit
 on that wall at all, so the levers are different — which is exactly why it gets its
 own short doc instead of more rows in the decode one.
 
 This is a map of where prefill's time goes and how the M-topics attack it; most of
 the mechanics live in [Chapter 6](../06_batching/01_batching.md) and
-[end-to-end §9](../02_cuda_software_stack/02_end_to_end_inference.md#9-the-serving-engine-who-drives-the-loop)
+[end-to-end §10](../02_cuda_software_stack/02_end_to_end_inference.md#10-the-serving-engine-who-drives-the-loop)
 already, so this doc is deliberately pointer-heavy.
 
 Prerequisites:
 [Batching §3 and §8](../06_batching/01_batching.md#3-the-roofline-view-climbing-toward-the-ridge),
-[End-to-end §4](../02_cuda_software_stack/02_end_to_end_inference.md#4-stage-2--prefill-a-transformer-layer-is-a-graph-of-kernels),
+[End-to-end §5](../02_cuda_software_stack/02_end_to_end_inference.md#5-stage-2--prefill-a-transformer-layer-is-a-graph-of-kernels),
 and [Improving decode §5](01_improving_decode.md#5-the-agent-case-prefix-caching-wraps-the-shared-part).
 Next: M11–M16 in the [Roadmap](../ROADMAP.md).
 
@@ -51,7 +51,7 @@ requests share leading tokens (a common system prompt, the same few-shot example
 an agent re-sending its history), the KV cache for that shared prefix is identical
 and can be computed once and reused, skipping the prefix's entire forward pass on
 every later request — *prefix caching* / *RadixAttention*
-([end-to-end §9](../02_cuda_software_stack/02_end_to_end_inference.md#9-the-serving-engine-who-drives-the-loop)).
+([end-to-end §10](../02_cuda_software_stack/02_end_to_end_inference.md#10-the-serving-engine-who-drives-the-loop)).
 
 Decode §5 already placed this on the escape map
 ([improving decode §5](01_improving_decode.md#5-the-agent-case-prefix-caching-wraps-the-shared-part));
@@ -70,7 +70,7 @@ users' per-token latency (TPOT). *Chunked prefill* splits a long prefill into
 smaller pieces that interleave with ongoing decodes, so neither phase starves the
 other
 ([batching §8](../06_batching/01_batching.md#8-loose-ends-prefill-and-how-we-measure-this),
-[end-to-end §9](../02_cuda_software_stack/02_end_to_end_inference.md#9-the-serving-engine-who-drives-the-loop)).
+[end-to-end §10](../02_cuda_software_stack/02_end_to_end_inference.md#10-the-serving-engine-who-drives-the-loop)).
 It doesn't make prefill cheaper; it keeps one request's prefill from holding the
 whole batch's decode hostage. That's an M12 (vLLM) behavior to measure.
 

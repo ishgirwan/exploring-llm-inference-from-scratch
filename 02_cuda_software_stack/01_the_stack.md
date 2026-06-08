@@ -243,7 +243,7 @@ AI-generated               an LLM writes the kernel, often iterating against a
 ```
 
 The auto-tuned row is exactly the first-call cost from
-[end-to-end §7](02_end_to_end_inference.md#7-who-chooses-the-kernel-and-when). The
+[end-to-end §8](02_end_to_end_inference.md#8-who-chooses-the-kernel-and-when). The
 pragmatic ladder: try `torch.compile` first (free fusion), write **Triton** when
 you need a real custom kernel quickly, and drop to **CUTLASS / CUDA C++** only at a
 scale where the last few percent pays back the expert time. This is M6 and M16

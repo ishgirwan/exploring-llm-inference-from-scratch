@@ -2,8 +2,8 @@
 
 This is the doc for the operation the
 [end-to-end inference walkthrough](../02_cuda_software_stack/02_end_to_end_inference.md)
-kept pointing at and deferring: in its §4 layer graph, "attention" was one box
-labelled *FlashAttention kernel → Tensor Cores + FP lanes*, and its §6 decode
+kept pointing at and deferring: in its §5 layer graph, "attention" was one box
+labelled *FlashAttention kernel → Tensor Cores + FP lanes*, and its §7 decode
 loop said "this token's Q attends over all past K,V in the KV cache" without
 ever saying what Q, K, V are or why the cache is shaped the way it is. This doc
 fills in that box.
@@ -16,7 +16,7 @@ re-derive it.
 
 Prerequisites:
 [End to end: a prompt becomes tokens](../02_cuda_software_stack/02_end_to_end_inference.md)
-(its §4 transformer-layer graph and §6 decode loop), and
+(its §5 transformer-layer graph and §7 decode loop), and
 [GPU execution model §15](../01_hardware_fundamentals/03_gpu_model.md#15-why-llm-inference-is-often-memory-bound)
 (memory-bound vs compute-bound).
 Next: M9–M10 in the [Roadmap](../ROADMAP.md) — where this gets built and measured.
@@ -43,7 +43,7 @@ other tokens*, weighted by how relevant each one is:
 ```
 
 The rest of the transformer layer (the norms, the MLP — see
-[end-to-end §4](../02_cuda_software_stack/02_end_to_end_inference.md#4-stage-2--prefill-a-transformer-layer-is-a-graph-of-kernels))
+[end-to-end §5](../02_cuda_software_stack/02_end_to_end_inference.md#5-stage-2--prefill-a-transformer-layer-is-a-graph-of-kernels))
 works on each token independently. Attention is the *only* place tokens talk to
 each other. Everything below is the mechanics of "look at the others and pull in
 a weighted blend."
@@ -58,7 +58,7 @@ average of *all* values, weighted by how well each key matched.
 
 To do this, each token's input vector is turned into three different vectors by
 three separate learned matrices (the *projections* from
-[end-to-end §4](../02_cuda_software_stack/02_end_to_end_inference.md#4-stage-2--prefill-a-transformer-layer-is-a-graph-of-kernels)):
+[end-to-end §5](../02_cuda_software_stack/02_end_to_end_inference.md#5-stage-2--prefill-a-transformer-layer-is-a-graph-of-kernels)):
 
 ```text
   query  Q = x · W_Q     "what am I looking for?"
@@ -69,7 +69,7 @@ three separate learned matrices (the *projections* from
 A *projection* here just means multiplying the token vector by a learned weight
 matrix to map it into a new space. `W_Q`, `W_K`, `W_V` are part of the model's
 trained weights, living in VRAM like everything else
-([end-to-end §2](../02_cuda_software_stack/02_end_to_end_inference.md#2-stage-0--loading-the-model-once-at-startup)).
+([end-to-end §3](../02_cuda_software_stack/02_end_to_end_inference.md#3-stage-0--loading-the-model-once-at-startup)).
 The shapes, for a sequence of `N` tokens:
 
 ```text
@@ -80,7 +80,7 @@ The shapes, for a sequence of `N` tokens:
 ```
 
 These three matmuls are the `Q,K,V projection` box from
-[end-to-end §4](../02_cuda_software_stack/02_end_to_end_inference.md#4-stage-2--prefill-a-transformer-layer-is-a-graph-of-kernels)
+[end-to-end §5](../02_cuda_software_stack/02_end_to_end_inference.md#5-stage-2--prefill-a-transformer-layer-is-a-graph-of-kernels)
 — ordinary GEMMs on Tensor Cores. With Q, K, V in hand, attention itself is the
 five steps in §3.
 
@@ -95,7 +95,7 @@ formula —
 
 — but it's much clearer unpacked. I'll note the hardware each step runs on as I
 go, the same grounding
-[end-to-end §4](../02_cuda_software_stack/02_end_to_end_inference.md#4-stage-2--prefill-a-transformer-layer-is-a-graph-of-kernels)
+[end-to-end §5](../02_cuda_software_stack/02_end_to_end_inference.md#5-stage-2--prefill-a-transformer-layer-is-a-graph-of-kernels)
 used for the layer.
 
 **Step 1 — scores: how much each query matches each key.** Take the dot product
@@ -194,7 +194,7 @@ The shape pipeline, end to end:
 So the two heavy matmuls (`Q·Kᵀ` and `weights·V`) hit the Tensor Cores; the
 scale, mask, and softmax in the middle are elementwise/reduction work on the FP
 lanes — exactly the split
-[end-to-end §4](../02_cuda_software_stack/02_end_to_end_inference.md#4-stage-2--prefill-a-transformer-layer-is-a-graph-of-kernels)
+[end-to-end §5](../02_cuda_software_stack/02_end_to_end_inference.md#5-stage-2--prefill-a-transformer-layer-is-a-graph-of-kernels)
 drew for the whole layer, now seen inside the attention box.
 
 ## 4. A worked example, with actual numbers
@@ -290,14 +290,14 @@ to width `d_model` and passed through one more learned matrix `W_O`:
 ```
 
 That final `· W_O` is the **`output proj` box from
-[end-to-end §4](../02_cuda_software_stack/02_end_to_end_inference.md#4-stage-2--prefill-a-transformer-layer-is-a-graph-of-kernels)**
+[end-to-end §5](../02_cuda_software_stack/02_end_to_end_inference.md#5-stage-2--prefill-a-transformer-layer-is-a-graph-of-kernels)**
 — the same step, named from the attention side here and from the layer-graph
 side there. Heads are independent, which is part of why attention parallelises
 so well across the GPU's many lanes.
 
 ## 6. Prefill vs decode: the same math, two very different shapes
 
-[End-to-end §4 and §6](../02_cuda_software_stack/02_end_to_end_inference.md#4-stage-2--prefill-a-transformer-layer-is-a-graph-of-kernels)
+[End-to-end §5 and §7](../02_cuda_software_stack/02_end_to_end_inference.md#5-stage-2--prefill-a-transformer-layer-is-a-graph-of-kernels)
 introduced prefill (process the whole prompt at once) and decode (one token at a
 time). Attention is where the difference bites hardest, because the *shape* of
 the computation changes completely.
@@ -330,7 +330,7 @@ Two things follow, and they're the whole reason for the rest of this doc:
 The KV cache is the running store of every past token's **K**ey and **V**alue
 vectors, kept in VRAM so that each new decode step can attend over the history
 without recomputing it
-([end-to-end §6](../02_cuda_software_stack/02_end_to_end_inference.md#6-stage-3--decode-the-autoregressive-loop)
+([end-to-end §7](../02_cuda_software_stack/02_end_to_end_inference.md#7-stage-3--decode-the-autoregressive-loop)
 introduced it by name). §6 above is the justification: decode needs all past K
 and V, but they don't change once computed, so compute each token's K and V
 once and keep them.
@@ -402,13 +402,13 @@ sized to the max length — easy, but it wastes VRAM (sequences that finish earl
 or never reach max length, leave holes) and fragments as requests come and go.
 Real engines store the cache in fixed-size blocks instead, like operating-system
 memory pages — vLLM's **PagedAttention**
-([end-to-end §9](../02_cuda_software_stack/02_end_to_end_inference.md#9-the-serving-engine-who-drives-the-loop)).
+([end-to-end §10](../02_cuda_software_stack/02_end_to_end_inference.md#10-the-serving-engine-who-drives-the-loop)).
 The toy version of that is M17; the layout above is the contiguous mental model
 to start from.
 
 ## 8. Why decode attention is memory-bound — and it's a *different* wall
 
-[End-to-end §6](../02_cuda_software_stack/02_end_to_end_inference.md#6-stage-3--decode-the-autoregressive-loop)
+[End-to-end §7](../02_cuda_software_stack/02_end_to_end_inference.md#7-stage-3--decode-the-autoregressive-loop)
 and
 [execution model §15](../01_hardware_fundamentals/03_gpu_model.md#15-why-llm-inference-is-often-memory-bound)
 already established that decode is memory-bound at batch size 1. But "memory-bound"
@@ -418,7 +418,7 @@ hides two *different* bottlenecks, and attention is where the second one lives:
   the projections + MLP   are memory-bound on the WEIGHTS
        bytes read per step ≈ model size (e.g. 140 GB), FIXED — independent of
        how long the context is, and SHAREABLE across a batch (read the weight
-       once, use it for every sequence in the batch — end-to-end §9)
+       once, use it for every sequence in the batch — end-to-end §10)
 
   attention decode        is memory-bound on the KV CACHE
        bytes read per step = the whole cache (the §7 formula), which GROWS with
@@ -471,7 +471,7 @@ the `[N × d]` inputs and output do. That turns attention's memory cost from
 That's the map-altitude version. The actual online-softmax recurrence and the
 tiling schedule are what I build in **M16** — this section is just here so the
 word "FlashAttention" in
-[end-to-end §4](../02_cuda_software_stack/02_end_to_end_inference.md#4-stage-2--prefill-a-transformer-layer-is-a-graph-of-kernels)
+[end-to-end §5](../02_cuda_software_stack/02_end_to_end_inference.md#5-stage-2--prefill-a-transformer-layer-is-a-graph-of-kernels)
 now points at a real idea: *don't write the big matrix down.*
 
 ## 10. What to carry forward

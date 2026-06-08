@@ -201,7 +201,7 @@ prompt, the same tool definitions, the conversation so far. Their KV cache for t
 shared prefix is identical, so it can be computed **once** and reused across every
 call that shares it — *prefix caching* / *RadixAttention*
 ([batching §4](../06_batching/01_batching.md#4-the-subtlety-batching-helps-the-weights-not-attention),
-[end-to-end §9](../02_cuda_software_stack/02_end_to_end_inference.md#9-the-serving-engine-who-drives-the-loop)).
+[end-to-end §10](../02_cuda_software_stack/02_end_to_end_inference.md#10-the-serving-engine-who-drives-the-loop)).
 On the map it's the across-users denominator route again (amortizing work across
 calls), but applied to attention's KV cache rather than the weights, and it's the
 single biggest reason agent-style workloads behave differently from one-shot
@@ -228,7 +228,7 @@ the contrast concrete:
 ```
 
 The honest qualifier, in the spirit of
-[end-to-end §9](../02_cuda_software_stack/02_end_to_end_inference.md#9-the-serving-engine-who-drives-the-loop):
+[end-to-end §10](../02_cuda_software_stack/02_end_to_end_inference.md#10-the-serving-engine-who-drives-the-loop):
 llama.cpp *can* batch — it has parallel slots and continuous batching of its own.
 The split isn't "can vs. can't," it's what each is *tuned for*: the single-user
 local regime leans on the within-stream levers because that's the regime where the
@@ -246,7 +246,7 @@ for omissions:
 - **CUDA graphs** — each decode step launches dozens of tiny kernels, and the CPU
   cost of *launching* them is a real fraction of such a short step. Capturing the
   step into one replayable graph removes that launch overhead
-  ([end-to-end §9](../02_cuda_software_stack/02_end_to_end_inference.md#9-the-serving-engine-who-drives-the-loop);
+  ([end-to-end §10](../02_cuda_software_stack/02_end_to_end_inference.md#10-the-serving-engine-who-drives-the-loop);
   M18).
 
 ## 7. What to carry forward

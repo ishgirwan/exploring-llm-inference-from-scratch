@@ -9,7 +9,7 @@ correct-but-slow kernel into a fast one — plus the *tuning knobs* and the
 
 I use **matrix multiply (GEMM)** as the example, for three reasons: it's the LLM
 workhorse (every projection and MLP, and the heart of attention, is a GEMM —
-[end-to-end §4](../02_cuda_software_stack/02_end_to_end_inference.md#4-stage-2--prefill-a-transformer-layer-is-a-graph-of-kernels)),
+[end-to-end §5](../02_cuda_software_stack/02_end_to_end_inference.md#5-stage-2--prefill-a-transformer-layer-is-a-graph-of-kernels)),
 it's the single most-studied optimization target in GPU computing, and every
 concept worth knowing — coalescing, tiling, registers, Tensor Cores, occupancy,
 autotuning — shows up in it.
@@ -18,7 +18,7 @@ autotuning — shows up in it.
 the story of a *large, compute-bound* GEMM — which is **prefill** (or any
 large-batch step). The repo has spent four docs establishing the *other* regime:
 **decode is a skinny matrix×vector, memory-bound at ~1 FLOP/byte**
-([end-to-end §6](../02_cuda_software_stack/02_end_to_end_inference.md#6-stage-3--decode-the-autoregressive-loop),
+([end-to-end §7](../02_cuda_software_stack/02_end_to_end_inference.md#7-stage-3--decode-the-autoregressive-loop),
 [attention §8](../05_attention_and_kv_cache/01_attention.md#8-why-decode-attention-is-memory-bound--and-its-a-different-wall),
 [MLP §7](../05_attention_and_kv_cache/02_mlp_feedforward.md#7-why-mlp-decode-is-weight-memory-bound--the-first-wall)),
 where tiling-for-reuse does *not* help. §11 returns to that regime and connects it
@@ -261,7 +261,7 @@ assumption.** Generating one token is a matrix × *vector*: `M = 1` (one token's
 activations) against the weight matrix. There's almost nothing to reuse — each
 weight is read once and used for one multiply-add — so intensity is ~1 FLOP/byte
 and the kernel is **memory-bound no matter how you tile it**
-([end-to-end §6](../02_cuda_software_stack/02_end_to_end_inference.md#6-stage-3--decode-the-autoregressive-loop)).
+([end-to-end §7](../02_cuda_software_stack/02_end_to_end_inference.md#7-stage-3--decode-the-autoregressive-loop)).
 
 So the optimization target flips:
 
@@ -329,7 +329,7 @@ Rather than a human hand-picking `BM, BN, ...`, an **autotuner** enumerates
 candidate configurations, benchmarks each on the actual shape and GPU, and keeps the
 fastest. This is `Triton @autotune`, the CUTLASS profiler, and cuBLASLt's heuristic
 search — and it's exactly the *first-call cost* described in
-[end-to-end §7](../02_cuda_software_stack/02_end_to_end_inference.md#7-who-chooses-the-kernel-and-when):
+[end-to-end §8](../02_cuda_software_stack/02_end_to_end_inference.md#8-who-chooses-the-kernel-and-when):
 the search runs the first time a shape is seen, then the winner is cached (the JIT /
 first-run effect, [First-run effects §2](../04_measurement/02_first_run_effects.md#2-jit-compilation)).
 Autotuning is why the same Triton kernel is fast across many shapes without a human
@@ -396,7 +396,7 @@ Beyond the core ladder, the highest-end kernels add tricks this doc only names:
 tiles through it, cutting launch/scheduling overhead), **epilogue fusion** (fold the
 bias/activation/scaling into the GEMM's write-back so the result never round-trips to
 VRAM — the fusion idea from
-[end-to-end §8](../02_cuda_software_stack/02_end_to_end_inference.md#8-how-a-kernel-is-made-fast)),
+[end-to-end §9](../02_cuda_software_stack/02_end_to_end_inference.md#9-how-a-kernel-is-made-fast)),
 and **warp specialization / TMA** on Hopper. These are M6/M16 footnotes, not new
 rungs.
 

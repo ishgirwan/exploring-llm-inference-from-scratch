@@ -3,7 +3,7 @@
 [Attention](01_attention.md) and [the MLP](02_mlp_feedforward.md) are
 the matmul-heavy sub-blocks, and [the two ends](03_embedding_and_lm_head.md)
 bracket the stack. But the
-[end-to-end §4](../02_cuda_software_stack/02_end_to_end_inference.md#4-stage-2--prefill-a-transformer-layer-is-a-graph-of-kernels)
+[end-to-end §5](../02_cuda_software_stack/02_end_to_end_inference.md#5-stage-2--prefill-a-transformer-layer-is-a-graph-of-kernels)
 layer graph had a whole set of *other* boxes between the matmuls — RMSNorm, RoPE,
 the activation, the residual adds — all drawn on the **FP lanes** and waved past
 as "elementwise glue." This section opens those boxes. The activation already got
@@ -14,7 +14,7 @@ They are individually trivial — a few arithmetic operations per number — whi
 why no earlier doc stopped on them. But they are not optional, and collectively
 they are a real slice of decode latency, for a reason that turns out to be the
 whole point: they are *memory-bound*, so they're exactly what kernel **fusion**
-([end-to-end §8](../02_cuda_software_stack/02_end_to_end_inference.md#8-how-a-kernel-is-made-fast))
+([end-to-end §9](../02_cuda_software_stack/02_end_to_end_inference.md#9-how-a-kernel-is-made-fast))
 exists to optimize. Understanding why is the payoff of this section.
 
 Same as the rest of the chapter, it's the map, not the build: I work out what
@@ -22,7 +22,7 @@ each computes so the M4 (RMSNorm) and M5 (RoPE) kernel builds start from known
 math.
 
 Prerequisites:
-[end-to-end §4](../02_cuda_software_stack/02_end_to_end_inference.md#4-stage-2--prefill-a-transformer-layer-is-a-graph-of-kernels)
+[end-to-end §5](../02_cuda_software_stack/02_end_to_end_inference.md#5-stage-2--prefill-a-transformer-layer-is-a-graph-of-kernels)
 (the layer graph these sit in) and [attention §1](01_attention.md#1-what-attention-is-for)
 (where the Q and K that RoPE rotates come from).
 Next: M4 and M5 in the [Roadmap](../ROADMAP.md) — the RMSNorm and RoPE kernels,
@@ -46,7 +46,7 @@ And there are *many* of them: two RMSNorms, a RoPE, and two residual adds **per
 layer**, times 32–80 layers. A naive implementation runs each as its own kernel,
 each making a full round trip to VRAM. That's the waste *fusion* removes — merging
 glue steps into the neighbouring kernel so the intermediate never leaves the chip
-(`end-to-end §8`). The glue is cheap in FLOPs but, done carelessly, expensive in
+(`end-to-end §9`). The glue is cheap in FLOPs but, done carelessly, expensive in
 the one resource decode is starved for: bandwidth.
 
 ## 2. RMSNorm: rescale each vector to a stable size
@@ -93,7 +93,7 @@ attention. *Positional encoding* is what tells the model the order, and modern
 models use **RoPE** — rotary position encoding.
 
 The idea: take the Query and Key vectors (right after the Q,K,V projection,
-`end-to-end §4`), split each into 2-D pairs of coordinates, and **rotate each pair
+`end-to-end §5`), split each into 2-D pairs of coordinates, and **rotate each pair
 by an angle proportional to the token's position**. Different pairs rotate at
 different speeds (frequencies), so the full rotation encodes position richly.
 
@@ -158,12 +158,12 @@ memory-bound (§1):
   residual add   elementwise add of two [N × d_model] tensors  -> FP lanes
 ```
 
-These are the `RMSNorm`, `RoPE`, and `residual add` boxes from `end-to-end §4` —
+These are the `RMSNorm`, `RoPE`, and `residual add` boxes from `end-to-end §5` —
 the ones it grouped as "everything else is an elementwise kernel on the regular FP
 lanes." Because each is memory-bound and there are several per layer, the standard
 optimization is to **fuse** them into the matmul kernels on either side, so the
-activations don't make extra VRAM round trips (`end-to-end §8`, and the fused
-kernels serving engines ship, `end-to-end §9`). The prefill/decode shape split
+activations don't make extra VRAM round trips (`end-to-end §9`, and the fused
+kernels serving engines ship, `end-to-end §10`). The prefill/decode shape split
 (`attention §6`) applies but barely matters here: elementwise work scales with the
 number of tokens either way and never becomes the matmul-style bottleneck — it's
 the matmuls and the KV cache that dominate, and the glue that fusion tucks in

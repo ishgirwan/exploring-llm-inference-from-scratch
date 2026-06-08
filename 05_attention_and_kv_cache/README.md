@@ -1,7 +1,7 @@
 # Chapter 5 — Anatomy of a forward pass
 
 This chapter is the anatomy of a single forward pass: every operation the
-[end-to-end §4](../02_cuda_software_stack/02_end_to_end_inference.md#4-stage-2--prefill-a-transformer-layer-is-a-graph-of-kernels)
+[end-to-end §5](../02_cuda_software_stack/02_end_to_end_inference.md#5-stage-2--prefill-a-transformer-layer-is-a-graph-of-kernels)
 map named and then deferred, worked out on paper. Its heart is **attention** and
 the **KV cache** (§1) — the only operation where tokens look at each other, and
 where inference's memory behaviour gets most interesting: the cache that makes
@@ -10,7 +10,7 @@ traffic. Around that core the chapter assembles the rest of the pass — the
 **MLP** (§2), the model's two ends (**embedding** and the **LM head**, §3), the
 elementwise **glue** that threads through every layer (§4), and **sampling**,
 which turns the final scores into the next token (§5). Together they explain the
-whole `end-to-end §4` layer graph, end to end. The map for the M3.5–M17 build
+whole `end-to-end §5` layer graph, end to end. The map for the M3.5–M17 build
 topics.
 
 ## Sections

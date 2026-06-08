@@ -148,18 +148,104 @@ Wire a few transistors together and you get a logic gate. The simplest useful
 one is a NAND (not-and): its output is low only when both inputs are high.
 
 ```text
-   2-input NAND gate (about 4 transistors inside)
+   2-input NAND gate (4 transistors inside)
 
    A ----+
           +-- [ NAND ] -- out      out is LOW only if A AND B are both HIGH
    B ----+
 ```
 
-The standard CMOS implementation uses four transistors arranged so the
-output is pulled high unless both inputs are high — two transistors do the
-pulling-down when both inputs are high, two do the pulling-up otherwise.
-We do not need to look inside any further; from here on, "NAND" is one
-named functional block.
+This is the one rung where *physics becomes logic*: below it are physical
+switches moving current through transistors; above it is Boolean logic working
+on abstract 1s and 0s. §3 above ("Transistors make controllable signals")
+flagged that a switch only becomes a bit "one layer up, at the gate level" —
+this is that layer, so it is the one place we open all the way down to the
+transistors. Every rung above NAND is logic built from logic — gates wired into
+an adder, adders into an ALU — and the build-up that follows opens each of
+those one level deep: far enough to see how the pieces below it wire together,
+then sealed back into a named block.
+
+CMOS — the technology nearly all chips use — provides two complementary kinds
+of transistor that switch on opposite inputs (the "complementary" in CMOS):
+
+```text
+NMOS   conducts (switch closed) when its gate is HIGH
+PMOS   conducts (switch closed) when its gate is LOW
+```
+
+A gate wires these between two *rails* — supply wires each held at a fixed
+voltage:
+
+```text
+VDD    the high-voltage rail   (logical 1)
+GND    the ground rail, 0 V    (logical 0)
+```
+
+- A *pull-up network* of PMOS can connect the output up to VDD (drive it HIGH).
+- A *pull-down network* of NMOS can connect the output down to GND (drive it LOW).
+
+For a NAND the four transistors form two PMOS in parallel on top and two NMOS
+in series on the bottom:
+
+```text
+                  VDD   (high rail = logical 1)
+                   |
+        +----------+----------+
+        |                     |
+      [ P1 ]               [ P2 ]        two PMOS, in PARALLEL  (pull-up)
+        |                     |
+        +----------+----------+
+                   |
+                   +----------------->  out
+                   |
+                 [ N1 ]                  two NMOS, in SERIES   (pull-down)
+                   |
+                 [ N2 ]
+                   |
+                  GND   (ground rail = logical 0)
+```
+
+Each input is a *single* wire that fans out to one PMOS and one NMOS — so the A
+wire drives the gates of both P1 and N1, and the B wire drives both P2 and N2.
+There are still only two inputs; each just touches two transistors:
+
+```text
+   P1 gate = A      N1 gate = A      (the A wire fans out to both)
+   P2 gate = B      N2 gate = B      (the B wire fans out to both)
+```
+
+Two wiring choices do all the logical work:
+
+```text
+parallel pull-up    out reaches VDD if P1 OR  P2 conducts
+series  pull-down   out reaches GND if N1 AND N2 both conduct
+```
+
+Now walk the four input combinations, remembering PMOS conducts on LOW and
+NMOS conducts on HIGH:
+
+```text
+ A  B | P1  P2  | N1  N2  | path to VDD?  | path to GND?  | out
+ -----+---------+---------+---------------+---------------+-----
+ 0  0 | on  on  | off off | yes (both)    | no            |  1
+ 0  1 | on  off | off on  | yes (P1)      | no (N1 open)  |  1
+ 1  0 | off on  | on  off | yes (P2)      | no (N2 open)  |  1
+ 1  1 | off off | on  on  | no            | yes (both)    |  0
+```
+
+The output sits LOW only on the bottom row, where both inputs are high — which
+is exactly the NAND rule. On every other row at least one PMOS pulls the output
+up to VDD. (This is the concrete form of the §3 point that "transistor on" can
+mean either output level: a conducting PMOS drives the output high, while the
+two conducting NMOS together drive it low.)
+
+One behavior falls straight out of the series/parallel arrangement: stacking
+the NMOS in series naturally *inverts*, because only all-high inputs complete
+the path down to ground, producing a LOW. That is why NAND is the cheap,
+natural CMOS primitive at four transistors, while a plain AND needs two more
+to flip the output back the other way.
+
+From here on we treat NAND as one named functional block.
 
 NAND is enough on its own. Any other gate (AND, OR, NOT, XOR) can be built
 from NANDs alone, so in principle the whole tower above this layer is just
@@ -175,7 +261,7 @@ column to the left. The "carry-in" is what arrives from the column to the
 right; the "carry-out" is what leaves toward the column to the left.
 
 ```text
-   1-bit full adder (about 5 gates inside)
+   1-bit full adder (5 gates inside)
 
    A bit -----+
               |
@@ -184,15 +270,103 @@ right; the "carry-out" is what leaves toward the column to the left.
    carry in --+
 ```
 
-The internals do not matter for our story. "Add two bits" is now one named
-functional block.
+What the gates inside compute is fixed by how binary addition of three bits
+(A, B, and the carry-in) works. Adding three 1-bit values gives a total from 0
+to 3, which needs two output bits: the low bit is the *sum*, the high bit is
+the *carry-out*.
+
+```text
+ A  B  Cin | A+B+Cin | carry-out  sum
+ ----------+---------+----------------
+ 0  0   0  |    0    |     0       0
+ 0  0   1  |    1    |     0       1
+ 0  1   0  |    1    |     0       1
+ 0  1   1  |    2    |     1       0
+ 1  0   0  |    1    |     0       1
+ 1  0   1  |    2    |     1       0
+ 1  1   0  |    2    |     1       0
+ 1  1   1  |    3    |     1       1
+```
+
+Reading the two output columns against the gates from the previous subsection:
+
+```text
+sum        is 1 when an ODD number of the inputs are 1   -> A XOR B XOR Cin
+carry-out  is 1 when at least TWO of the inputs are 1    -> (A AND B) OR ((A XOR B) AND Cin)
+```
+
+(XOR — "exclusive OR" — outputs 1 only when its two inputs differ, so chaining
+two XORs yields 1 exactly when an odd number of the three inputs are 1.)
+
+The tidy way to wire that uses two *half-adders*. A half-adder adds just two
+bits, with no carry-in: its XOR gives their sum, its AND gives the carry those
+two bits generate.
+
+```text
+   half-adder (adds two bits)
+
+   X --+--[ XOR ]-- sum     (1 if X and Y differ)
+       |
+   Y --+--[ AND ]-- carry   (1 only if X and Y are both 1)
+```
+
+A full adder is two half-adders plus one OR gate, wired in three stages:
+
+```text
+   stage 1   HA1 adds A and B        -> s1 (partial sum),  c1 (carry)
+   stage 2   HA2 adds s1 and Cin     -> sum,               c2 (carry)
+   stage 3   OR  combines c1 and c2  -> carry-out
+```
+
+```text
+   1-bit full adder = 2 half-adders + 1 OR   (5 gates)
+
+       A ---+
+            +--> [ HA1 ] --s1--+
+       B ---+        |         +--> [ HA2 ] --> sum
+                     |   Cin --+        |
+                    c1                  c2
+                     |                  |
+                     +----> [ OR ] <----+
+                              |
+                              v
+                          carry-out
+```
+
+The carry-out is 1 if *either* half-adder produced a carry — exactly the "at
+least two inputs are 1" rule from the truth table. Trace any row of the table
+through the three stages and the two outputs match.
+
+Opened once, this is enough. From here up, "add two bits" is one named block — a
+*full adder* — drawn as a single box with inputs A, B, Cin and outputs sum and
+carry-out.
 
 ### 1-bit adders -> multi-bit adder
 
-Chain four 1-bit adders, passing each adder's carry-out to the next adder's
-carry-in, and you can add two 4-bit numbers. This structure is called a
+Chain four 1-bit full adders, passing each adder's carry-out into the next
+adder's carry-in, and you can add two 4-bit numbers. Each FA is the block we
+just built; only the carry wires connect them. This structure is called a
 *ripple-carry adder*, because the carry signal ripples from the rightmost
-column to the leftmost. That is our 7 + 5:
+column (the least significant bit) to the leftmost:
+
+```text
+   4-bit ripple-carry adder — four full adders, carry chained right to left
+
+       A3 B3        A2 B2        A1 B1        A0 B0
+        | |          | |          | |          | |
+        v v          v v          v v          v v
+      +-----+  c3   +-----+  c2   +-----+  c1   +-----+
+  <---| FA3 |<------| FA2 |<------| FA1 |<------| FA0 |<--- carry-in = 0
+  c4  +-----+       +-----+       +-----+       +-----+
+        |             |             |             |
+        v             v             v             v
+        S3            S2            S1            S0
+```
+
+Each FA takes one bit of A, one bit of B, and the carry rippling in from its
+right; it emits one sum bit and the carry into its left neighbour. The leftmost
+carry-out (c4) is the overflow bit. Feeding in our 7 + 5 (A = 0111, B = 0101)
+and letting the carry ripple left:
 
 ```text
        carry flows left
@@ -232,6 +406,9 @@ Each layer is built from copies of the previous one:
 A single 64-bit adder contains hundreds of transistors; an ALU contains
 thousands; a core contains millions; a GPU contains tens of billions. Each
 layer adds capability without needing to know how the layer below it is built.
+The top two rungs — core/SM and chip/GPU — are where the CPU and GPU designs
+part ways; §7 below ("From one core to a chip") walks that fork once the core
+itself is built.
 
 Build-up so far:
 
@@ -273,6 +450,47 @@ Those circuits are grouped into an Arithmetic Logic Unit (ALU).
 
   operation control: add, subtract, compare, ...
 ```
+
+Inside, an ALU is not one clever circuit that "knows" every operation. It is a
+bank of separate circuits — the adder built above, plus an AND circuit, an OR
+circuit, an XOR circuit, a shifter, a comparator — all wired to the same two
+inputs, A and B. Every one of them computes its own result at the same time. A
+*multiplexer* then picks which result actually leaves the ALU.
+
+A multiplexer (mux) is a selector circuit: it has several data inputs, a few
+*control* inputs, and one output, and the control bits choose which single data
+input is passed through to the output — the electronic equivalent of a rotary
+switch. In an ALU the control bits are the operation code from the instruction:
+"add" selects the adder's output, "and" selects the AND circuit's output, and
+so on.
+
+```text
+   inside an ALU
+
+       A ---+-----+-----+-----+------+
+            |     |     |     |      |
+       B ---+-----+-----+-----+------+
+            v     v     v     v      v
+          +---+ +---+ +---+ +---+ +-----+
+          |ADD| |SUB| |AND| |OR | |SHIFT|   ... all compute at once
+          +---+ +---+ +---+ +---+ +-----+
+            |     |     |     |      |
+            +-----+-----+-----+------+
+                        |
+                        v
+                   +---------+
+                   |   MUX   | <-- operation-select bits (from the instruction)
+                   +---------+
+                        |
+                        v
+                     output     (only the selected circuit's result)
+```
+
+Computing every operation and keeping only one looks wasteful, but in hardware
+it is cheap and fast: each circuit is small, they all run concurrently, and a
+mux selects in less time than it would take to first decide *which* circuit to
+run and only then run it. This is an early glimpse of a theme that returns on
+the GPU — hardware will happily spend extra transistors to avoid spending time.
 
 Integer arithmetic uses ALUs. Floating-point arithmetic uses a Floating-Point
 Unit (FPU), because floating-point values have a sign, exponent, mantissa,
@@ -419,6 +637,55 @@ Now our tiny machine has the main pieces of a core:
 
 A core is this bundle: instruction control, nearby storage, execution units, and
 paths to memory.
+
+## 7. From one core to a chip: where CPU and GPU diverge
+
+§6 finished one core: instruction control, registers, execution units, and a
+path to memory. A whole chip is many cores on one piece of silicon — and *how*
+the core is replicated is the single fork that separates a CPU from a GPU.
+
+```text
+                         one core (from §6)
+                                |
+               +----------------+-----------------+
+               |                                  |
+        replicate a FEW                   strip the core down to its
+        full, heavyweight cores           arithmetic lanes, then replicate
+        as-is                             those MANY times, grouped into SMs
+               |                                  |
+               v                                  v
+      +----------------------+        +-----------------------------+
+      | CPU                  |        | GPU                         |
+      | a handful of cores,  |        | thousands of lanes bundled  |
+      | each with deep       |        | into tens-to-hundreds of    |
+      | control to run ONE   |        | SMs, sharing control to run |
+      | instruction stream   |        | MANY threads at once        |
+      | as fast as possible  |        |                             |
+      +----------------------+        +-----------------------------+
+         optimized for                    optimized for
+         latency                          throughput
+```
+
+The two designs spend the same silicon budget on opposite things. A CPU pours
+area into making a few instruction streams individually fast: large caches and
+elaborate per-core control (branch prediction, out-of-order execution) wrapped
+around a few strong cores. A GPU pours that area into *many* simple arithmetic
+lanes plus wide memory bandwidth, and shares one control unit across a whole
+bundle of lanes — a Streaming Multiprocessor (SM) — so that far more of the
+chip is doing arithmetic at any moment. (A *lane* is one arithmetic slot, the
+GPU's equivalent of a single ALU; an *SM* is the GPU's rough analogue of a CPU
+core, restructured to favour many parallel lanes over one fast stream.)
+
+That trade only pays off when there is plenty of independent work to keep the
+lanes busy. LLM inference is exactly that case — every matrix multiplication is
+thousands of independent multiply-adds — which is why GPUs dominate it.
+
+This doc stops at the fork. The full picture downstream — side-by-side CPU and
+GPU chip diagrams, what one SM holds inside, and how the software you write
+(threads, blocks, warps) maps onto the lanes — is the subject of
+[The GPU execution model](03_gpu_model.md), which opens with this same
+chip-area trade and later sets the two chips side by side in "CPU and GPU at
+the chip level".
 
 ---
 

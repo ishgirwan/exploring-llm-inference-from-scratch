@@ -247,7 +247,7 @@ And the decorator wires the search:
 This is [§1 §14](01_writing_and_tuning_a_matmul.md#14-autotuning-searching-the-space)
 made literal: the **first** time the kernel is called for a given `(M, N, K)`,
 Triton runs every config, times it, and caches the fastest — the first-call cost
-from [end-to-end §7](../02_cuda_software_stack/02_end_to_end_inference.md#7-who-chooses-the-kernel-and-when).
+from [end-to-end §8](../02_cuda_software_stack/02_end_to_end_inference.md#8-who-chooses-the-kernel-and-when).
 `key=['M','N','K']` means a *new* shape triggers a *fresh* search, because the best
 tile for a 4096³ matmul isn't the best for a skinny decode shape
 ([§1 §11](01_writing_and_tuning_a_matmul.md#11-decode-is-a-gemv-and-batching-turns-it-back-into-a-gemm)) —

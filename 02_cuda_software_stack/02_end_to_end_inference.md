@@ -69,7 +69,7 @@ hardware:
    startup)          (CPU)            prompt at once)        one at a time)
                                       COMPUTE-bound         MEMORY-bound
                                       Tensor Cores hot      at batch size 1
-                                                            (see §6, §9)
+                                                            (see §7, §10)
                                                                 |
                                                                 +--loop--+
                                                                          |
@@ -77,13 +77,59 @@ hardware:
                                                             fed back in as next input
 ```
 
-The rest of the doc walks these four stages left to right. At each stage I pull
-in the vertical stack: which software layer is driving, and which hardware
-component is actually doing the work. Two things to hold onto from the start:
+Before walking the stages, §2 lays out the cast: every software layer and
+hardware part the diagrams above name, what each does in inference, and where
+below you'll watch it work. Then the rest of the doc walks these four stages left
+to right. At each stage I pull in the vertical stack: which software layer is
+driving, and which hardware component is actually doing the work. Two things to
+hold onto from the start:
 **Stage 0 happens once** (it's setup, not per-request), and **Stage 3 is a
 loop** — almost all the wall-clock time a user waits is spent there.
 
-## 2. Stage 0 — loading the model (once, at startup)
+## 2. The components: what each layer and part does
+
+§1 drew the stack as a picture — who hands work to whom. This section is its
+legend: what each rung does during inference, and which later section shows it
+working. It's the cast list to read before the play — nothing here is new
+machinery, just a name and a job for every box in the diagram above. (The
+hardware names are all from
+[Chapter 1 — Hardware fundamentals](../01_hardware_fundamentals/README.md), now
+pinned to their inference role.)
+
+The software layers first — the host-side stack, the top of §1's diagram, each
+rung handing work to the one below:
+
+| Layer | Its job in inference | Where it appears |
+| --- | --- | --- |
+| serving engine | requests, batching, KV-cache management, the generation loop | §10 |
+| ML framework (PyTorch) | the model as a graph of ops; dispatch each to a kernel | §5, §8 |
+| kernel libraries | cuBLAS (matmul), FlashAttention (attention), fused kernels | §5, §9 |
+| autotuner / dispatcher | pick the concrete kernel + config for each op and shape | §8 |
+| CUDA runtime | allocate VRAM, copy data, launch kernels | §3, ch2 §1 |
+| CUDA driver | turn launches into hardware commands; compile PTX→SASS | §8, ch2 §1 |
+
+Then the hardware, below the dashed host/device line in that same diagram:
+
+| Component | Its job in inference | Where it appears |
+| --- | --- | --- |
+| CPU (host) | runs the engine + framework; tokenizes; launches kernels | §4, §10 |
+| PCIe bus | carries weights CPU→GPU at load; carries tokens in/out | §3 |
+| VRAM (HBM/GDDR) | holds weights, KV cache, activations; the bandwidth that caps decode | §3, §7 |
+| L2 cache | shared staging area between VRAM and all SMs | §6 |
+| SM | the worker unit; runs each kernel's blocks of threads | §6 |
+| warp scheduler | picks a ready warp each cycle; hides VRAM latency | §6 |
+| shared memory | on-chip scratchpad holding reused tiles (not VRAM) | §6 |
+| registers | fastest per-thread storage; holds matmul accumulators | §6 |
+| Tensor Cores | do the big matmuls (projections, MLP, attention) | §5, §6 |
+| FP/INT lanes | do the glue: norms, RoPE, activation, residual, sampling | §5 |
+| load/store units | stream tiles between VRAM, L2, and shared memory | §6 |
+
+The **Where it appears** column is a reading guide, not a recap: each part is
+named here, then does its real work in the section listed. Two of them set the
+pace for everything after — **VRAM bandwidth** (§7, what makes decode slow) and
+the **serving engine's batching** (§10, what amortizes it away).
+
+## 3. Stage 0 — loading the model (once, at startup)
 
 Before a single prompt can be served, the model's *weights* — the billions of
 trained numbers that define it — have to get from a file into a place the GPU
@@ -106,7 +152,7 @@ Who does what, top of the stack to bottom:
 
 ```text
 serving engine   decides which model to load, how to shard it, how much
-                 VRAM to reserve for the KV cache (see §9)
+                 VRAM to reserve for the KV cache (see §10)
 framework        reads the weight file, creates tensors, calls .to('cuda')
 CUDA runtime     cudaMalloc reserves the VRAM; cudaMemcpy copies into it
 driver           moves the bytes across PCIe and into the right VRAM pages
@@ -141,7 +187,7 @@ by byte, so the pointer `cudaMalloc` returns is a *virtual* address, and the dri
 keeps a *page table* mapping each virtual page to a physical page in the HBM/GDDR
 chips. "Into the right VRAM pages" means the driver lands the incoming bytes at the
 physical pages backing that tensor's virtual address. The same paging idea returns
-one level up in *PagedAttention* ([§9](#9-the-serving-engine-who-drives-the-loop)),
+one level up in *PagedAttention* ([§10](#10-the-serving-engine-who-drives-the-loop)),
 which stores the KV cache in fixed-size blocks — pages — so it need not sit in one
 contiguous slab.
 
@@ -149,14 +195,14 @@ This is a one-time cost paid at server startup, and it is pure data movement —
 no math, no Tensor Cores. The reason it matters for the rest of the story: once
 this is done, **the weights never leave VRAM**. Every token the model ever
 generates re-reads these same weights out of VRAM. That single fact is what
-makes Stage 3 memory-bound, and §6 returns to it.
+makes Stage 3 memory-bound, and §7 returns to it.
 
 A *safetensors* file, named above, is just the common on-disk format for model
 weights — a flat block of numbers plus a small header saying the name, shape,
 and dtype of each weight tensor. Nothing runs from it directly; it's a
 container that gets copied into VRAM.
 
-## 3. Stage 1 — the prompt arrives and becomes tokens
+## 4. Stage 1 — the prompt arrives and becomes tokens
 
 A user sends text. That text hits the **serving engine**, a normal program
 running on the CPU (the *host*, [ch2 §1](01_the_stack.md#what-a-cuda-program-actually-does)).
@@ -178,7 +224,7 @@ each with its integer ID. The set of all possible tokens is the *vocabulary*
 the GPU is not involved yet. The output is a short list of integers, the only
 form of the prompt the model actually consumes.
 
-## 4. Stage 2 — prefill: a transformer layer is a graph of kernels
+## 5. Stage 2 — prefill: a transformer layer is a graph of kernels
 
 Now the GPU starts working. *Prefill* is the phase that processes the entire
 prompt in one shot. The N token IDs are sent to the GPU and turned into vectors,
@@ -254,7 +300,7 @@ is their anatomy**:
 - the **RMSNorm, RoPE, and residual** glue → [§4](../05_attention_and_kv_cache/04_elementwise_glue.md)
 
 One step the diagram folds into the attention box: that box also
-*writes this layer's K and V into the KV cache* — the structure §6 leans on to
+*writes this layer's K and V into the KV cache* — the structure §7 leans on to
 make decode cheap. What it stores and why it's shaped that way is
 [Chapter 5 §7](../05_attention_and_kv_cache/01_attention.md#7-the-kv-cache-what-it-stores-and-why-its-shaped-that-way).
 
@@ -267,9 +313,9 @@ hardware inside the same SM.
 Keep three things separate there, because the diagram's `GEMM -> Tensor Cores`
 column tempts you to collapse them: a *GEMM* is the **operation** (a matrix
 multiply); **cuBLAS** is the **library** that, at each call, picks a concrete
-kernel to do it ([§7](#7-who-chooses-the-kernel-and-when)); and the **Tensor
+kernel to do it ([§8](#8-who-chooses-the-kernel-and-when)); and the **Tensor
 Cores** are the **hardware** that kernel runs on. cuBLAS is neither a kernel nor
-a piece of hardware — it's the chooser in the middle. §7 is the section that
+a piece of hardware — it's the chooser in the middle. §8 is the section that
 makes that "who picks the kernel" question precise.
 
 After the last layer, a final RMSNorm and one more matmul (the *LM head*,
@@ -291,7 +337,7 @@ math for all N tokens before it's discarded — high *arithmetic intensity*
 The Tensor Cores stay busy. Prefill is where the GPU's advertised FLOP/s
 actually get used.
 
-## 5. Inside one kernel: a matmul, all the way down
+## 6. Inside one kernel: a matmul, all the way down
 
 Pick one GEMM from the layer above — say the MLP up-projection — and follow it
 to the bottom of the stack. This is exactly the
@@ -302,7 +348,7 @@ I'll add only the matmul-specific layer on top of it.
 ```text
   framework calls torch matmul (or the engine's fused linear)
         |
-        |  cuBLAS picks a kernel + tile size (see §7); CUDA runtime launches it
+        |  cuBLAS picks a kernel + tile size (see §8); CUDA runtime launches it
         v
   GPU: block scheduler hands tiles of the matmul to the ~132 SMs
        (execution model §6)
@@ -334,9 +380,11 @@ long on shared memory and tiling
 the expensive step is moving bytes across the VRAM link at the top. So the SM
 crosses it once to fill shared memory, then reuses those tile values for many
 Tensor Core operations before going back. Every box below "shared memory" runs
-at on-chip speed; only the top arrow touches slow off-chip memory.
+at on-chip speed; only the top arrow touches slow off-chip memory. Decode (§7)
+is this same picture with the reuse stripped out — one token in place of N —
+which is exactly what tips it from compute-bound to memory-bound.
 
-## 6. Stage 3 — decode: the autoregressive loop
+## 7. Stage 3 — decode: the autoregressive loop
 
 Prefill produced the first output token. Now the model must produce the rest,
 and it can only make them **one at a time**, because each new token depends on
@@ -349,7 +397,7 @@ all the tokens before it. This is *autoregressive* generation, and it is a loop:
   |  1. take the ONE token produced last turn -> embed it         |
   |     (now a single vector, not an N-row matrix)                |
   |                                                               |
-  |  2. run it through all layers (same graph as §4), BUT:        |
+  |  2. run it through all layers (same graph as §5), BUT:        |
   |       - every matmul is now matrix x VECTOR (one token)       |
   |       - attention: this token's Q attends over ALL past       |
   |         K,V — which are ALREADY in the KV CACHE in VRAM,       |
@@ -373,7 +421,7 @@ Values, kept in VRAM so each new token doesn't re-run attention over the whole
 history ([GPU execution model §13](../01_hardware_fundamentals/03_gpu_model.md#13-hbm-and-gddr-are-large-off-chip-memory)
 introduced it). It is what turns a would-be O(N²) recompute into "read the cache,
 append one entry." Weights, activations, **and** the KV cache all live in VRAM
-(§2). The full mechanics — what's cached, the exact layout, the size formula, and
+(§3). The full mechanics — what's cached, the exact layout, the size formula, and
 why long-context decode is bound by cache bandwidth — are in
 [Chapter 5 §7](../05_attention_and_kv_cache/01_attention.md#7-the-kv-cache-what-it-stores-and-why-its-shaped-that-way).
 
@@ -385,7 +433,30 @@ model; the loop would run identically with the screen off.
 
 **Why decode is memory-bound — at batch size 1.** With one token in flight,
 every matmul is matrix × vector: each weight is read from VRAM and used for a
-single multiply-accumulate, then discarded. Arithmetic intensity is about
+single multiply-accumulate, then discarded. This is the §6 drill-down with its
+middle step collapsed — same matmul, same SM, same slow weight load into shared
+memory; only the number of tokens reusing that load has changed.
+
+```text
+  PREFILL  (matrix x matrix, N prompt tokens) -- the §6 drill-down
+        weight tile loaded once  -->  feeds tokens 1, 2, ... N
+                                      = N multiply-accumulates per byte loaded
+                                      -> high reuse, COMPUTE-bound
+
+  DECODE   (matrix x vector, 1 token)
+        weight tile loaded once  -->  feeds token 1, then discarded
+                                      = 1 multiply-accumulate per byte loaded
+                                      -> no reuse, MEMORY-bound
+```
+
+Nothing about the silicon differs between the two — same load path, same Tensor
+Cores. The single variable is N, the number of tokens sharing each weight load:
+prefill makes it large and amortizes the slow load over N rows of math; decode
+makes it 1, so each slow weight load is amortized over nothing — the SM fetches
+a tile, uses its bytes once, and goes straight back to VRAM for the next. (The
+one-token kernel even earns its own name — a *GEMV*, General Matrix-Vector
+multiply, where prefill's GEMM had a matrix on both sides.) Arithmetic
+intensity is about
 1 FLOP per byte — far below the few-hundred-FLOP/byte ratio the hardware wants
 ([GPU execution model §15](../01_hardware_fundamentals/03_gpu_model.md#15-why-llm-inference-is-often-memory-bound)).
 So every turn of the loop must stream the **entire** weight set (e.g. 140 GB)
@@ -398,40 +469,24 @@ waiting. Token speed is set by VRAM bandwidth, not FLOP/s:
   from bandwidth alone — even with infinitely fast Tensor Cores.
 ```
 
-That "at batch size 1" qualifier is load-bearing, and §9 is where it gets
+That "at batch size 1" qualifier is load-bearing, and §10 is where it gets
 lifted.
 
-## 7. Who chooses the kernel, and when
+## 8. Who chooses the kernel, and when
 
 A model has dozens of distinct operations and, for each, many possible kernels —
 different tile sizes, different algorithms, one tuned per GPU and per shape. So
 "who picks the kernel?" is a real question, and the honest answer is: **several
-different deciders, each acting at a different *time*.** Sorting them by *when*
-is what makes this stop being hand-wavy.
+different deciders, each acting at a different *time* — and two of them fire on
+every call, one right after the other.** Sorting them by *when* is what makes
+this stop being hand-wavy.
 
-```text
-  WHEN                 WHO                      WHAT THEY DECIDE
-  ----                 ---                      ----------------
-  build time (human)   engine / model author    which OPERATOR implements
-                                                 each layer — e.g. "attention
-                                                 uses FlashAttention", "the
-                                                 projection is a cuBLAS Linear"
-
-  every call           PyTorch dispatcher       which BACKEND an op routes to,
-                                                 by (device, dtype, layout).
-                                                 Mechanical lookup, no choice
-                                                 of algorithm.
-
-  every call           library heuristics       which concrete GEMM kernel +
-                       (cuBLAS / cuBLASLt)       tile config, given the actual
-                                                 M,N,K dimensions, dtype, and
-                                                 GPU architecture.
-
-  first call per shape  autotuner               benchmarks several candidate
-  (then cached)        (Triton @autotune,       configs the FIRST time a shape
-                       CUTLASS profiler,         is seen, keeps the winner.
-                       cuBLASLt algo search)     This is a JIT / first-run cost.
-```
+| When | Who | What they decide |
+| --- | --- | --- |
+| Once, at build time — a human, long before any request | the engine / model author | Which **operator** implements each layer — e.g. "attention uses FlashAttention", "the projection is a cuBLAS `Linear`". |
+| Every call, step 1 | the PyTorch dispatcher | Which **backend** an op routes to, keyed on its (device, dtype, layout). A mechanical lookup: it selects an implementation, not an algorithm. |
+| Every call, step 2 | library heuristics (cuBLAS / cuBLASLt) | Which concrete **GEMM kernel and tile size** to run, given the actual matrix dimensions (M, N, K), the dtype, and the GPU architecture. |
+| First call per new shape, then cached | an autotuner (Triton `@autotune`, CUTLASS profiler, cuBLASLt algorithm search) | Benchmarks several candidate configs the first time it sees a given shape, then keeps the fastest — a one-time, first-run cost. |
 
 The insight to take away: there is no single chooser. Ask "who picks the kernel"
 and the answer depends on *when* you ask — a human wired the operator choice
@@ -446,7 +501,7 @@ are cached. This is exactly the *first-run effect* that benchmarking has to
 warm up past — see
 [First-run effects §2](../04_measurement/02_first_run_effects.md#2-jit-compilation).
 
-## 8. How a kernel is made fast
+## 9. How a kernel is made fast
 
 Choosing a kernel assumes fast kernels exist to choose from. Three ideas do most
 of the work, and two of them the earlier docs already built:
@@ -454,7 +509,7 @@ of the work, and two of them the earlier docs already built:
 ```text
 tiling       load a sub-block into shared memory once, reuse it for many
              multiply-accumulates before going back to VRAM. The core idea
-             of §5 above and GPU execution model §9-§10.
+             of §6 above and GPU execution model §9-§10.
 
 fusion       merge several elementwise steps into ONE kernel so intermediate
              values never leave the chip. Instead of "matmul -> write to VRAM
@@ -463,7 +518,7 @@ fusion       merge several elementwise steps into ONE kernel so intermediate
              intermediate in registers. Fewer VRAM round-trips, fewer launches.
 
 autotuning   for a given shape and GPU, benchmark candidate tile sizes and
-             pick the fastest (the §7 first-call step). The best tile size for
+             pick the fastest (the §8 first-call step). The best tile size for
              a 4096x4096 matmul on an H100 is not the best for a 512x512 on a
              T4, so the choice is made empirically per case.
 ```
@@ -472,10 +527,10 @@ Fusion is the new one here, and it matters most exactly where the hardware is
 starved: the elementwise glue work (norms, activations, residual adds) is itself
 memory-bound, so collapsing several such kernels into one removes VRAM
 round-trips that would otherwise dominate. This is why serving engines ship
-hand-fused kernels for those steps (§9), and a recurring lever in
+hand-fused kernels for those steps (§10), and a recurring lever in
 [GPU execution model §15](../01_hardware_fundamentals/03_gpu_model.md#15-why-llm-inference-is-often-memory-bound).
 
-## 9. The serving engine: who drives the loop
+## 10. The serving engine: who drives the loop
 
 So far the picture has a model and a loop, but something has to *run* that loop —
 receive requests, decide what to compute next, manage the KV cache, and keep the
@@ -507,7 +562,7 @@ A tempting overstatement to resist: **the engine does not replace
 PyTorch wholesale.** It replaces the *attention path* (with PagedAttention /
 FlashInfer-style kernels) and *fuses* some glue ops (RMSNorm, RoPE, the MLP
 activation), but the big linear layers still go through **cuBLAS** GEMMs on
-Tensor Cores, same as §4. The engine is the conductor and the attention
+Tensor Cores, same as §5. The engine is the conductor and the attention
 specialist; cuBLAS is still the workhorse for the projections. (I'll verify the
 finer details of each engine's kernel choices when I reach M12–M13 — this doc
 stays at map altitude on purpose.)
@@ -527,7 +582,7 @@ are a *PyTorch* feature the engines merely *apply* to the decode loop (M18). So 
 dividing line is scope, not capability — PyTorch optimizes a single forward pass;
 the engine optimizes the throughput of a whole stream of requests sharing the GPU.
 
-**This is where the "at batch size 1" qualifier from §6 gets lifted.** Decode is
+**This is where the "at batch size 1" qualifier from §7 gets lifted.** Decode is
 memory-bound *for a single sequence* because each weight load feeds only one
 token's math. Continuous batching changes that: the engine runs many sequences'
 decode steps **together**, so one weight load out of VRAM feeds *all* of them at
@@ -541,39 +596,7 @@ why arithmetic intensity scales with batch size, static vs. continuous batching,
 and how the KV cache caps it — are
 [Chapter 6 — Batching](../06_batching/01_batching.md).
 
-## 10. What each hardware component does
-
-A recap of the bottom half of the stack, pinned to where each part showed up in
-the flow above:
-
-| Component | Its job in inference | Seen in |
-| --- | --- | --- |
-| CPU (host) | runs the engine + framework; tokenizes; launches kernels | §3, §9 |
-| PCIe bus | carries weights CPU→GPU at load; carries tokens in/out | §2 |
-| VRAM (HBM/GDDR) | holds weights, KV cache, activations; the bandwidth that caps decode | §2, §6 |
-| L2 cache | shared staging area between VRAM and all SMs | §5 |
-| SM | the worker unit; runs each kernel's blocks of threads | §5 |
-| warp scheduler | picks a ready warp each cycle; hides VRAM latency | §5 |
-| shared memory | on-chip scratchpad holding reused tiles (not VRAM) | §5 |
-| registers | fastest per-thread storage; holds matmul accumulators | §5 |
-| Tensor Cores | do the big matmuls (projections, MLP, attention) | §4, §5 |
-| FP/INT lanes | do the glue: norms, RoPE, activation, residual, sampling | §4 |
-| load/store units | stream tiles between VRAM, L2, and shared memory | §5 |
-
-## 11. What each software layer does
-
-And the top half:
-
-| Layer | Its job in inference | Seen in |
-| --- | --- | --- |
-| serving engine | requests, batching, KV-cache management, the generation loop | §9 |
-| ML framework (PyTorch) | the model as a graph of ops; dispatch each to a kernel | §4, §7 |
-| kernel libraries | cuBLAS (matmul), FlashAttention (attention), fused kernels | §4, §8 |
-| autotuner / dispatcher | pick the concrete kernel + config for each op and shape | §7 |
-| CUDA runtime | allocate VRAM, copy data, launch kernels | §2, ch2 §1 |
-| CUDA driver | turn launches into hardware commands; compile PTX→SASS | §7, ch2 §1 |
-
-## 12. Follow one token, all the way down and back
+## 11. Follow one token, all the way down and back
 
 Tying both axes together — one full turn of the decode loop, from the engine's
 decision down to a Tensor Core and back up to text on a screen:
@@ -582,11 +605,11 @@ decision down to a Tensor Core and back up to text on a screen:
   1. ENGINE (CPU)      decides this sequence runs this step; gathers its
                        last token ID and a pointer to its KV-cache blocks
   2. FRAMEWORK (CPU)   walks the model graph; for each op, dispatches to a
-                       kernel (§7)
+                       kernel (§8)
   3. RUNTIME (CPU)     launches each kernel: kernel<<<grid,block>>>(...)
   4. DRIVER (CPU->GPU) turns launches into GPU commands; SASS already compiled
   5. GPU: per layer    block scheduler -> SMs; matmuls hit Tensor Cores via
-                       shared-memory tiles (§5); attention reads this
+                       shared-memory tiles (§6); attention reads this
                        sequence's KV cache from VRAM and appends one entry;
                        norms/RoPE/activation run on FP lanes
   6. GPU: LM head      final matmul -> logits in VRAM
@@ -603,19 +626,19 @@ response. The user waits, almost entirely, on that loop turning — which is why
 the whole rest of this project is about making each turn move fewer bytes and
 keep the SMs busier.
 
-## 13. What to carry into the rest of the project
+## 12. What to carry into the rest of the project
 
 The map this doc draws is the thing the roadmap topics fill in with real code
 and real numbers:
 
 ```text
-the kernels in §4 (RMSNorm, RoPE, softmax, matmul)   -> M3-M6, built and measured
-a transformer layer as a graph of kernels (§4)        -> M9, assembled for real
-the KV cache and the decode loop (§6)                 -> M10-M11
-prefill vs decode, compute- vs memory-bound (§4, §6)  -> M11, benchmarked
-the serving engines (§9)                              -> M12-M13, vLLM & SGLang
-batching as the throughput lever (§9)                 -> M12.5, a toy scheduler
-how kernels are made fast (§8): fusion, tiling        -> M15-M18 (quant, Flash-
+the kernels in §5 (RMSNorm, RoPE, softmax, matmul)   -> M3-M6, built and measured
+a transformer layer as a graph of kernels (§5)        -> M9, assembled for real
+the KV cache and the decode loop (§7)                 -> M10-M11
+prefill vs decode, compute- vs memory-bound (§5, §7)  -> M11, benchmarked
+the serving engines (§10)                             -> M12-M13, vLLM & SGLang
+batching as the throughput lever (§10)                -> M12.5, a toy scheduler
+how kernels are made fast (§9): fusion, tiling        -> M15-M18 (quant, Flash-
                                                          Attention, paged attn,
                                                          CUDA graphs)
 ```

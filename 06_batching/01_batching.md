@@ -1,7 +1,7 @@
 # Batching: the throughput lever
 
 Three docs so far have hit the same wall and put up the same "for now" sign.
-[End-to-end §6](../02_cuda_software_stack/02_end_to_end_inference.md#6-stage-3--decode-the-autoregressive-loop)
+[End-to-end §7](../02_cuda_software_stack/02_end_to_end_inference.md#7-stage-3--decode-the-autoregressive-loop)
 said decode is memory-bound **at batch size 1**.
 [Attention §8](../05_attention_and_kv_cache/01_attention.md#8-why-decode-attention-is-memory-bound--and-its-a-different-wall)
 and
@@ -16,7 +16,7 @@ most directly at the serving work ahead — read it as the bridge into M12–M13
 not as theory to finish before M0.
 
 Prerequisites:
-[End-to-end §6 and §9](../02_cuda_software_stack/02_end_to_end_inference.md#6-stage-3--decode-the-autoregressive-loop),
+[End-to-end §7 and §10](../02_cuda_software_stack/02_end_to_end_inference.md#7-stage-3--decode-the-autoregressive-loop),
 [Attention §7–§8](../05_attention_and_kv_cache/01_attention.md#7-the-kv-cache-what-it-stores-and-why-its-shaped-that-way),
 [MLP §7](../05_attention_and_kv_cache/02_mlp_feedforward.md#7-why-mlp-decode-is-weight-memory-bound--the-first-wall),
 and [execution model §15](../01_hardware_fundamentals/03_gpu_model.md#15-why-llm-inference-is-often-memory-bound).
@@ -110,7 +110,7 @@ for its `B−1` batchmates each step. That is the central serving tradeoff:
 Prefill, by contrast, is *already* compute-bound without any batching trick,
 because a single prompt's `N` tokens are processed together — `N` plays the role
 of `B`
-([end-to-end §4](../02_cuda_software_stack/02_end_to_end_inference.md#4-stage-2--prefill-a-transformer-layer-is-a-graph-of-kernels)).
+([end-to-end §5](../02_cuda_software_stack/02_end_to_end_inference.md#5-stage-2--prefill-a-transformer-layer-is-a-graph-of-kernels)).
 Decode is the phase that needs batching.
 
 ## 4. The subtlety: batching helps the weights, not attention
@@ -143,7 +143,7 @@ The one exception, worth flagging because it's a whole optimization: when severa
 sequences **share a prompt prefix** (the same system prompt, or an agent loop
 re-sending history), their KV cache for that prefix is identical and can be stored
 *once* and reused — *prefix caching* / *RadixAttention*
-([end-to-end §9](../02_cuda_software_stack/02_end_to_end_inference.md#9-the-serving-engine-who-drives-the-loop),
+([end-to-end §10](../02_cuda_software_stack/02_end_to_end_inference.md#10-the-serving-engine-who-drives-the-loop),
 SGLang, M13). That's the one way attention work gets amortized across sequences,
 and only for the shared part.
 
@@ -176,7 +176,7 @@ The fix is to stop thinking in whole requests and schedule at the granularity of
 admit waiting requests into the freed slots — so the batch is continuously topped
 up instead of draining to empty. This is *continuous batching* (also called
 *iteration-level scheduling* or *in-flight batching*), the core of vLLM
-([end-to-end §9](../02_cuda_software_stack/02_end_to_end_inference.md#9-the-serving-engine-who-drives-the-loop)):
+([end-to-end §10](../02_cuda_software_stack/02_end_to_end_inference.md#10-the-serving-engine-who-drives-the-loop)):
 
 ```text
   continuous batching (new requests E,F,G admitted as A,D,C finish)
@@ -219,7 +219,7 @@ That makes packing the KV cache efficiently a direct throughput lever: the tight
 you pack it, the more sequences fit, the bigger `B`, the higher throughput. That's
 the whole point of **PagedAttention** — store the cache in small fixed-size blocks
 so there's no wasted space reserved for max-length sequences that never get there
-([end-to-end §9](../02_cuda_software_stack/02_end_to_end_inference.md#9-the-serving-engine-who-drives-the-loop);
+([end-to-end §10](../02_cuda_software_stack/02_end_to_end_inference.md#10-the-serving-engine-who-drives-the-loop);
 the toy version is M17).
 
 ## 8. Loose ends: prefill, and how we measure this
@@ -230,7 +230,7 @@ Two threads to pick up properly later:
 (§3), and a real server has both happening across its many requests. Naively, a
 long prefill blocks everyone's decode for a step. *Chunked prefill* splits a big
 prefill into pieces that interleave with ongoing decodes so neither starves
-([end-to-end §9](../02_cuda_software_stack/02_end_to_end_inference.md#9-the-serving-engine-who-drives-the-loop)).
+([end-to-end §10](../02_cuda_software_stack/02_end_to_end_inference.md#10-the-serving-engine-who-drives-the-loop)).
 
 **The metrics batching trades between.** Because batching pushes throughput up and
 per-token latency up at the same time, you can't talk about it with one number.

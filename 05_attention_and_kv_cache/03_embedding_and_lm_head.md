@@ -4,14 +4,14 @@ This chapter has opened up the *inside* of a transformer layer —
 [attention](01_attention.md) and [the MLP](02_mlp_feedforward.md).
 But a layer is the *middle* of the model. The stack of identical layers has a
 front door and a back door that the
-[end-to-end §4](../02_cuda_software_stack/02_end_to_end_inference.md#4-stage-2--prefill-a-transformer-layer-is-a-graph-of-kernels)
+[end-to-end §5](../02_cuda_software_stack/02_end_to_end_inference.md#5-stage-2--prefill-a-transformer-layer-is-a-graph-of-kernels)
 map named in passing and then left unexplained: the front door turns token IDs
 into the first vectors (the *embedding*), and the back door turns the last
 layer's vectors into one score per vocabulary word (the *LM head*, short for
 *language-model head*). They bracket the whole stack — and, a nice surprise,
 they are often literally the same matrix used twice.
 
-I'm writing this because when I traced a prompt down `end-to-end §4`, these were
+I'm writing this because when I traced a prompt down `end-to-end §5`, these were
 the two steps I could *not* actually explain. The map said "embedding lookup (a
 large weights matrix in VRAM)" and "LM head (projecting from `d_model` up to
 vocabulary size)" without ever saying what either one *is*. This section is that
@@ -22,9 +22,9 @@ the two ends compute and what shape they are, so the M9 block assembly and the
 M11 prefill/decode benchmarks start from known numbers.
 
 Prerequisites:
-[end-to-end §4](../02_cuda_software_stack/02_end_to_end_inference.md#4-stage-2--prefill-a-transformer-layer-is-a-graph-of-kernels)
+[end-to-end §5](../02_cuda_software_stack/02_end_to_end_inference.md#5-stage-2--prefill-a-transformer-layer-is-a-graph-of-kernels)
 (the layer graph these two bracket) and
-[end-to-end §3](../02_cuda_software_stack/02_end_to_end_inference.md#3-stage-1--the-prompt-arrives-and-becomes-tokens)
+[end-to-end §4](../02_cuda_software_stack/02_end_to_end_inference.md#4-stage-1--the-prompt-arrives-and-becomes-tokens)
 (tokenization, which produces the token IDs the embedding consumes).
 Next: M9 in the [Roadmap](../ROADMAP.md) — where both ends get wired into the
 block, and M11, where the LM head's last-position logits drive prefill.
@@ -36,7 +36,7 @@ fixed step on each side. Everything in `attention §1`–`MLP §6` lives in the
 middle band; this section is the two slices of bread.
 
 ```text
-  token IDs   [15496, 4088, ...]      from the tokenizer (end-to-end §3)
+  token IDs   [15496, 4088, ...]      from the tokenizer (end-to-end §4)
        |
        |  EMBEDDING  — look up one row per token ID            <- FRONT DOOR
        v
@@ -58,7 +58,7 @@ middle band; this section is the two slices of bread.
 
 Two terms used there, both defined more fully below: the *vocabulary* is the
 fixed set of all possible tokens the model knows (commonly 32,000–256,000
-entries, from `end-to-end §3`), and `d_model` is the model's hidden width — the
+entries, from `end-to-end §4`), and `d_model` is the model's hidden width — the
 length of the vector that represents each token as it flows through the layers
 (e.g. 4096). The front door maps **one integer → one `d_model` vector**; the back
 door maps **one `d_model` vector → one score per vocabulary entry**. They are
@@ -99,7 +99,7 @@ then consume.
 
 Because it is a gather, not a matmul, the embedding runs on the load/store units,
 not the Tensor Cores — it moves bytes, it doesn't compute. Its cost is trivial
-next to a single layer's matmuls, which is why `end-to-end §4` drew the layer
+next to a single layer's matmuls, which is why `end-to-end §5` drew the layer
 graph *starting after* the embedding: the lookup is too cheap to be part of the
 story.
 
@@ -132,8 +132,8 @@ defined the term). Logits are not yet probabilities — turning them into a sing
 chosen token is [sampling](05_sampling.md)'s job.
 
 Unlike the embedding, the LM head genuinely computes: it is a *GEMM* (general
-matrix multiply, `end-to-end §4`) and runs on the Tensor Cores, the same workhorse
-the projections and the MLP use. One subtlety carried over from `end-to-end §4`:
+matrix multiply, `end-to-end §5`) and runs on the Tensor Cores, the same workhorse
+the projections and the MLP use. One subtlety carried over from `end-to-end §5`:
 in **prefill** the model produces a hidden vector at every one of the `N`
 positions, but only the **last** position's logits decide the first generated
 token — so a serving engine computes the LM head for just that one position and
@@ -192,13 +192,13 @@ It is also a real *compute* cost at the back door. In decode, the LM head is a
 matrix × vector against the full `[d_model × vocab]` matrix **every single
 token** — so like the rest of decode at batch size 1 it is memory-bound (read the
 whole big matrix, use it once,
-[end-to-end §6](../02_cuda_software_stack/02_end_to_end_inference.md#6-stage-3--decode-the-autoregressive-loop)),
+[end-to-end §7](../02_cuda_software_stack/02_end_to_end_inference.md#7-stage-3--decode-the-autoregressive-loop)),
 and with a 128k vocabulary that is a non-trivial slice of each token's work.
 
 ## 6. Shapes and hardware
 
 The two ends split across the GPU's units the same way the layer did
-(`end-to-end §4`):
+(`end-to-end §5`):
 
 ```text
   embedding lookup    gather (index → rows)   -> load/store units   (no math)

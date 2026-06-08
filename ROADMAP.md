@@ -184,7 +184,7 @@ README.md  ROADMAP.md  FAILURES.md  CHANGELOG.md  LICENSE
                             (Q·Kᵀ → softmax → ·V) + the KV cache, the MLP
                             (SwiGLU), the two ends (embedding + LM head), the
                             elementwise glue (RMSNorm, RoPE, residuals), and
-                            sampling — every op the end-to-end §4 map deferred
+                            sampling — every op the end-to-end §5 map deferred
 06_batching/                chapter 6; batching as the throughput lever —
                             intensity ≈ B, continuous batching, why it helps
                             the weight matmuls but not attention, KV-cache
