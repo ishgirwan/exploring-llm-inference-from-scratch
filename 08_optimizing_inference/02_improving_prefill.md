@@ -101,7 +101,7 @@ underused, and vice versa.
 sized for compute-bound prefill, one for memory-bound decode — and ships the KV
 cache between them. Each pool then runs near the bottleneck it was provisioned for.
 This is the most speculative item here: the roadmap files it under "maybe later"
-(M24), so treat it as a direction I'm flagging, not a topic I've committed to
+(M32), so treat it as a direction I'm flagging, not a topic I've committed to
 building.
 
 ## 6. What to carry forward
@@ -113,7 +113,7 @@ chunked prefill keeps prefill from blocking        -> M12 (vLLM)
   decode (§3)
 FlashAttention cuts attention's HBM traffic,        -> M16, build + benchmark
   matters most at large N (§4)
-prefill/decode disaggregation (§5)                  -> M24, "maybe later" — speculative
+prefill/decode disaggregation (§5)                  -> M32, "maybe later" — speculative
 ```
 
 The one sentence to keep: **prefill is already compute-bound — `N` prompt tokens

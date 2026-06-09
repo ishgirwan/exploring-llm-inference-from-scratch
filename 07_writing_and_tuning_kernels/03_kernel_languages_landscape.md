@@ -199,7 +199,10 @@ Triton.** Two independent groups — the Triton project and Meta — concluded t
 when Triton's abstraction runs out of control, the answer isn't to abandon it but
 to add a lower gear. That means "Triton vs. CuTe" is no longer a hard either/or:
 you can keep your Triton kernel and reach for more control without switching
-languages. They all fit one sentence, the timeline's own: *more specialization,
+languages. (*Why* descending closes the Triton-vs-CuTe speed gap — and exactly how
+far Gluon/TLX sit from CuTe — is the two-gaps story in
+[CuTe DSL foundations §7](../09_kernel_engineering/01_cute_dsl_foundations.md#7-why-triton-and-cute-can-differ-in-speed-the-two-gaps).)
+They all fit one sentence, the timeline's own: *more specialization,
 more explicit scheduling, and/or more compiler-managed orchestration* — knobs 1,
 2, 3.
 

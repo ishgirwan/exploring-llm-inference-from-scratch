@@ -1,7 +1,8 @@
 # Roadmap
 
 My plan for learning how LLM inference runs on GPUs, from the first kernel up to
-real serving optimizations. It's a plan, not a syllabus. I'll reorder it as I go.
+real serving optimizations — and, in Phase 5, to writing competitive GPU kernels
+myself. It's a plan, not a syllabus. I'll reorder it as I go.
 
 ## 1. What this is
 
@@ -69,6 +70,7 @@ rented GPU.
 | Transformer & serving | M8–M14 | Rented 4090 or L4 | $0.30–0.70/hr |
 | Optimization | M15–M19 | Rented 4090 / A100 | $0.40–1.50/hr |
 | Scale & capstone | M20–M22 | Rented 2× A100 or H100 | $2–8/hr |
+| Kernel engineering | M23–M30 | Rented H100; a Blackwell (B200) slice for M28 | $2–25/hr |
 
 The Colab T4 covers M0–M7. It's a Turing GPU with no native bf16 and no FP8, so
 from M7-ish I rent something stronger. Nsight Systems works
@@ -81,9 +83,10 @@ container so benchmarks don't drift as the software underneath changes. See
 
 ## 5. The plan
 
-Roughly 22 topics in four phases. The early phase is concrete; the later phase
-is a guess and I expect to reorder it. Half-numbered items (M2.5 etc.) are short,
-one focused note. Time estimates assume ~10 hrs/week and are optimistic.
+Roughly 30 topics in five phases. The early phases are concrete; the later ones
+(especially Phase 5) are a guess and I expect to reorder them. Half-numbered items
+(M2.5 etc.) are short, one focused note. Time estimates assume ~10 hrs/week and are
+optimistic.
 
 ### Phase 1 — Foundations *(Colab T4 is enough)*
 
@@ -145,14 +148,44 @@ Checkpoint after M19: tag `v0.3`.
 | M21 | Architecture comparison | The same workload across T4 / 4090 / A100 | Tensor Core generations, bandwidth, dtype support |
 | M22 | Capstone | The full picture: model × quant × context × engine × GPU | one honest report pulling it together |
 
-Checkpoint after M22: tag `v1.0`.
+Checkpoint after M22: tag `v1.0`. The inference journey is complete; Phase 5 turns
+that understanding into the ability to *author* competitive kernels.
 
-Maybe later, if I still have energy: MoE inference (M23), disaggregated
-prefill/decode (M24).
+### Phase 5 — Kernel engineering *(rent an H100; a Blackwell slice for M28)*
+
+Phases 1–4 build understanding by reading real kernels and building simplified
+ones — the "explain the gap" ethos of §9. Phase 5 raises the ceiling: go down to
+the metal in the tools the frontier actually uses, and *close* the gap on at least
+one kernel. The on-ramp is deliberate: Triton (already learned, M1–M16) taught the
+tile model; **CuTe DSL** is the primary low-level tool here, because it reaches
+CUTLASS/CUDA-grade performance with a far gentler learning curve than C++; raw
+**CUDA C++ / CUTLASS** is what I read to see what compiles underneath. The key fact
+that makes this reachable: CuTe DSL's Python runs once at *compile* time to
+generate the kernel — it drives the same hardware primitives (WGMMA, TMA, tcgen05)
+as the C++ path, with no Python left in the running kernel, so staying in Python
+costs no performance at the ceiling. FlashAttention is the spine that ties all
+three languages together.
+
+| # | Topic | What I'll build | Concepts |
+| --- | --- | --- | --- |
+| M23 | CuTe DSL foundations | Layout / tensor / atom exercises; a copy kernel + GEMV in CuTe DSL, beside a Triton equivalent | layouts, tensors, MMA / copy *atoms*, host `@jit` vs device `@kernel`, the Python→MLIR→PTX JIT |
+| M24 | Tiled GEMM, three ways | The same tiled matmul in Triton → CuTe DSL → CUTLASS, each measured vs cuBLAS | the M6 ladder mapped across languages; which rung each tool makes explicit vs hides |
+| M25 | FlashAttention Rosetta Stone | An annotated read of FA1→FA4 side by side — CUDA (`csrc`), CuTe C++ (`hopper`), CuTe DSL (`flash_attn/cute`), Triton | what each rung forces you to write: SRAM tiling → WGMMA → TMA → warp specialization → Python codegen |
+| M26 | Build FlashAttention | Carry M16's simplified Triton FA further, then rebuild it in CuTe DSL; verify + benchmark vs `flash-attn` | online softmax, on-chip tiling, the producer/consumer split, accumulator precision |
+| M27 | Async pipelines & warp specialization | A warp-specialized, TMA-fed, multi-stage pipelined GEMM (Hopper) | TMA (a DMA engine), WGMMA, `mbarrier`, producer/consumer warps, pipeline depth |
+| M28 | Blackwell tensor cores | Port a kernel to Blackwell: tcgen05 MMA (UMMA), Tensor Memory, low precision | 5th-gen Tensor Cores, TMEM, 2-CTA MMA, MXFP8 / NVFP4 microscaling |
+| M29 | Fusion & perf portability | A fused kernel (fused MLP, or attention + bias + softmax) autotuned across two arches | epilogue + kernel fusion, autotuning, why the best config differs per GPU |
+| M30 | Beat-the-baseline capstone | Take one kernel and tune it until it matches or beats a strong reference on a target GPU | the honest bar: correctness + speedup vs a *real* baseline (cuBLAS / flash-attn), documented end to end |
+
+Checkpoint after M30: tag `v2.0`. I can author a custom kernel that holds its own
+against good hand-written code, and explain exactly why it's fast.
+
+Maybe later, if I still have energy: MoE inference (M31), disaggregated
+prefill/decode (M32).
 
 ## 6. Checkpoints
 
-A 22-topic project is most of a year part-time, and solo projects this size
+A 30-topic project is well over a year part-time, and solo projects this size
 usually die around month 3. So I tag checkpoints, points where the work adds up
 to something whole.
 
@@ -161,9 +194,13 @@ to something whole.
 | `v0.1` | M4 | Harness + a real LLM kernel, checked, measured, profiled |
 | `v0.2` | M14 | Full kernel stack + serving benchmark + agent angle |
 | `v0.3` | M19 | Optimization techniques, implemented and measured |
-| `v1.0` | M22 | The whole thing |
+| `v1.0` | M22 | The full inference journey: model × quant × context × engine × GPU |
+| `v2.0` | M30 | A custom kernel that matches/beats a strong baseline — and the skill to write more |
 
 Stop at `v0.2` and I've still finished a real thing. That's the point of tagging.
+`v1.0` is the complete inference story; `v2.0` is the kernel-engineering ceiling,
+and it's optional — reach it only if the earlier phases leave me wanting to build,
+not just understand.
 
 ## 7. Repo layout
 
@@ -192,13 +229,20 @@ README.md  ROADMAP.md  FAILURES.md  CHANGELOG.md  LICENSE
 07_writing_and_tuning_kernels/  chapter 7; what a kernel is made of and how to
                             write + tune one, using matmul — the optimization
                             ladder (coalescing, tiling, registers, Tensor
-                            Cores), autotuning, GPU-arch dependence; bridge to M1–M6
+                            Cores), autotuning, GPU-arch dependence, and the
+                            kernel-language landscape (Triton → CuTe DSL → CUDA);
+                            bridge to M1–M6 and the Phase 5 kernel-engineering track
 08_optimizing_inference/    chapter 8; the optimization map — decode's escape
                             routes (speculative decoding, multi-token prediction,
                             quantization, GQA/MQA/MLA KV shrinking) and prefill's
                             levers (prefix reuse, chunked prefill, FlashAttention,
                             prefill/decode disaggregation), each pinned to the
                             bottleneck it attacks; bridge to M11–M19
+09_kernel_engineering/      chapter 9 (Phase 5 prework, NOT pre-M0 reading); CuTe
+                            DSL foundations (layouts, tensors, atoms, the hardware
+                            glossary) and the FlashAttention Rosetta Stone — one
+                            algorithm across CUDA / CuTe C++ / CuTe DSL / Triton;
+                            bridge to M23–M30
                             Each chapter has a README.md indexing its sections.
                             Read top to bottom before M0; chapters grow as
                             the project does.
@@ -225,18 +269,31 @@ follow each chapter's "Next chapter" link through `02_cuda_software_stack/`,
 `06_batching/`, `07_writing_and_tuning_kernels/`, and `08_optimizing_inference/`
 (~6-8 hrs total). The last three — batching, kernel-tuning, and
 optimizing-inference — are really the bridges into the M-topic work (serving,
-kernel-building, and optimization) rather than pre-M0 setup. Then start at M0 with me. Don't trust my numbers, re-run them; every one has a
+kernel-building, and optimization) rather than pre-M0 setup. (Chapter 9, kernel
+engineering, is separate — prework for the Phase 5 track, M23–M30, not one of the
+pre-M0 eight; save it for when that track begins.) Then start at M0 with me. Don't trust my numbers, re-run them; every one has a
 script behind it. This will be wrong in places. When I find a mistake I fix it
 and note it in `FAILURES.md` rather than quietly editing history. Spot
 something before I do? Open an issue.
 
 ## 9. What I'm aiming for
 
-Industry-standard methodology: correctness checks, disciplined benchmarking,
-real profiling, honest reporting. That much I can reach on my own.
+Two levels of ambition, and Phase 5 is where the second one kicks in.
 
-I'm not claiming I'll reimplement state-of-the-art kernels from scratch. A
-production FlashAttention is hundreds of person-months of hardware-specific work.
-Instead I'll build simplified versions, read the real implementations
-(FlashInfer, vLLM, FlashAttention-3), benchmark against them, and explain the
-gap. Understanding that gap is the honest version of "I learned this."
+**Phases 1–4 — understand it honestly.** Industry-standard methodology:
+correctness checks, disciplined benchmarking, real profiling, honest reporting. I
+build simplified versions of the real kernels, read the production implementations
+(FlashInfer, vLLM, FlashAttention), benchmark against them, and explain the gap.
+Understanding that gap is the honest version of "I learned this," and for most of
+the stack that understanding *is* the goal.
+
+**Phase 5 — close the gap.** I'm no longer content to only explain the gap; I want
+to shrink it. A *full* production library is still hundreds of person-months of
+hardware-specific work, and I'm not rebuilding all of that. But the skill I'm after
+is real and reachable: write kernels at the level the frontier actually uses — down
+through CuTe DSL to Hopper's TMA/WGMMA and Blackwell's tcgen05/TMEM — and prove it
+by taking at least one kernel and tuning it until it *matches or beats a strong
+reference* (cuBLAS, flash-attn) on a target GPU (M30). The end state I'm aiming
+for: given a GPU architecture and a model operation, I can translate it into a
+hardware-efficient custom kernel that holds its own against good hand-written code,
+and know exactly why it's fast.
