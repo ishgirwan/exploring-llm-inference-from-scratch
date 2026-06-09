@@ -240,9 +240,10 @@ README.md  ROADMAP.md  FAILURES.md  CHANGELOG.md  LICENSE
                             bottleneck it attacks; bridge to M11–M19
 09_kernel_engineering/      chapter 9 (Phase 5 prework, NOT pre-M0 reading); CuTe
                             DSL foundations (layouts, tensors, atoms, the hardware
-                            glossary) and the FlashAttention Rosetta Stone — one
-                            algorithm across CUDA / CuTe C++ / CuTe DSL / Triton;
-                            bridge to M23–M30
+                            glossary), the FlashAttention Rosetta Stone — one
+                            algorithm across CUDA / CuTe C++ / CuTe DSL / Triton —
+                            and the source-to-SASS compilation pipeline; bridge to
+                            M23–M30
                             Each chapter has a README.md indexing its sections.
                             Read top to bottom before M0; chapters grow as
                             the project does.

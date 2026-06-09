@@ -276,6 +276,11 @@ until it closes the gap? The answer turns on splitting one apparent gap into two
     → NOT closeable by a better compiler. You must change the LANGUAGE.
 ```
 
+A clarification, since it trips people up: **all** of these — Triton, CuTe DSL,
+CUDA C++ — compile down to **SASS**, the GPU's actual machine code. None of them
+"stops short" of the hardware; there is no other way to run on a GPU. So the gap is
+*which* SASS gets generated, not *whether* you reach it.
+
 **The deep reason for Gap B: a high-level language is a lossy compression of intent.**
 The compiler reconstructs *how* from *what* — and only from the information you
 actually supplied. A Triton kernel says "here are tiles, do `tl.dot`, do the
