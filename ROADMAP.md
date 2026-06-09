@@ -242,8 +242,8 @@ README.md  ROADMAP.md  FAILURES.md  CHANGELOG.md  LICENSE
                             DSL foundations (layouts, tensors, atoms, the hardware
                             glossary), the FlashAttention Rosetta Stone — one
                             algorithm across CUDA / CuTe C++ / CuTe DSL / Triton —
-                            and the source-to-SASS compilation pipeline; bridge to
-                            M23–M30
+                            the source-to-SASS compilation pipeline, and reading PTX
+                            + the profile-and-optimize loop; bridge to M23–M30
                             Each chapter has a README.md indexing its sections.
                             Read top to bottom before M0; chapters grow as
                             the project does.

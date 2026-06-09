@@ -218,7 +218,42 @@ and your CuTe DSL one, `cuobjdump -sass` both, and **diff them**. The
 
 ---
 
-## 7. What to carry forward
+## 7. The PTX layer as a unifying substrate (and a caution)
+
+§1 showed every DSL converges at PTX. That convergence is itself something people
+build on: because Triton, CuTe, TileLang, and ThunderKittens *all* compile to PTX,
+you can extract and compare the PTX each emits for the same op — and even try to
+*combine* the optimizations each one captured, since at the PTX layer they all
+coexist. A 2026 effort
+([Standard Kernel](https://standardkernel.com/blog/reimagining-kernel-generation-at-the-ptx-layer-learning-from-and-outperforming-dsls/))
+automates exactly this: a program-analysis + LLM hybrid that mines the PTX of
+several DSLs and merges their optimizations, reporting kernels competitive with — and
+in places slightly ahead of — CUTLASS / Triton / TileLang on an H100. It is the
+automated, scaled-up form of the dump-and-diff in §6.
+
+Two things to keep in proportion, straight from the verify-first ethos
+([matmul §17](../07_writing_and_tuning_kernels/01_writing_and_tuning_a_matmul.md#17-measuring-optimal--the-honest-bar)):
+
+```text
+  CORRECTNESS FIRST  the post reports only timings — no correctness methodology.
+                     Combining PTX across sources is exactly where fast-but-WRONG
+                     kernels appear; a speedup on an unverified kernel is not a result.
+  READ THE MARGINS   the GEMM wins are thin (~5% over CUTLASS, and a tie — "first in
+                     5 of 10 trials" — at the large size that matters); the headline
+                     ~67% is a small memory-bound op vs ONE baseline. Thin wins can
+                     live inside autotuning noise.
+```
+
+And a calibration for *your* learning: even this PTX-focused effort finds "LLMs
+alone still fall short" at the PTX layer and bolts on program analysis — so
+pure-LLM PTX generation isn't here yet. The durable skill is the opposite of
+hand-writing PTX: **read** the PTX your kernels generate, profile, and change at the
+*source* level, reaching for inline PTX only surgically.
+[The next doc](04_reading_and_optimizing_ptx.md) walks that loop end to end.
+
+---
+
+## 8. What to carry forward
 
 ```text
 everyone ends at SASS; Triton & CuTe share PTX→ptxas→SASS (§1)  -> M23, the mental model
@@ -228,6 +263,8 @@ the PTX→SASS instruction map (wgmma→HGMMA, TMA→UTMALDG) (§3)      -> M24,
 same problem, different SASS = different WARP STRUCTURE (§4)       -> M24/M26, the GEMM diff
 Gap A = middle passes/ptxas; Gap B = source→PTX boundary (§5)     -> attributing the gap
 dump + diff: TRITON_KERNEL_DUMP, cuobjdump -sass, nvdisasm (§6)   -> M23/M24, do it for real
+the PTX layer is a shared substrate to mine/compare —            -> M24/M25, verify first
+  but verify correctness + read the margins (§7)
 ```
 
 The one sentence to keep: **every kernel language compiles down to the same SASS
