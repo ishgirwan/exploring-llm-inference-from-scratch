@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 A **public, first-person learning journey** about how LLM inference runs on GPUs —
 kernels, memory, profiling, serving engines, and (Phase 5) writing competitive
-custom kernels. Right now it is **prose only**: 33 Markdown files across nine
+custom kernels. Right now it is **prose only**: 35 Markdown files across nine
 chapters plus `ROADMAP.md`. There is **no code, no build, no tests, and no
 lint** — the labs and benchmarks (modules M0–M30) are *planned* in `ROADMAP.md` but
 not yet built. "Working in this repo" almost always means **authoring or editing

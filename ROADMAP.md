@@ -70,7 +70,7 @@ rented GPU.
 | Transformer & serving | M8–M14 | Rented 4090 or L4 | $0.30–0.70/hr |
 | Optimization | M15–M19 | Rented 4090 / A100 | $0.40–1.50/hr |
 | Scale & capstone | M20–M22 | Rented 2× A100 or H100 | $2–8/hr |
-| Kernel engineering | M23–M30 | Rented H100; a Blackwell (B200) slice for M28 | $2–25/hr |
+| Kernel engineering | M23–M30 | Rented H100; a Blackwell (B200) slice for M28; an MI300X slice for the optional AMD arm | $2–25/hr |
 
 The Colab T4 covers M0–M7. It's a Turing GPU with no native bf16 and no FP8, so
 from M7-ish I rent something stronger. Nsight Systems works
@@ -180,6 +180,13 @@ three languages together.
 Checkpoint after M30: tag `v2.0`. I can author a custom kernel that holds its own
 against good hand-written code, and explain exactly why it's fast.
 
+Everything in Phase 5 above is NVIDIA. AMD is the thinner-staffed frontier — the same
+low-level skills transfer, but the kernel gap is wider and fewer hands close it.
+[Chapter 9 §5](09_kernel_engineering/05_amd_kernel_track.md) maps the AMD stack (HIP ↔
+CUDA C++, Composable Kernel ↔ CUTLASS, **FlyDSL** ↔ CuTe DSL, AITER ↔ FlashInfer) and an
+optional AMD arm — an MI300X pass over M24/M26/M30 using Triton as the cross-vendor
+bridge and FlyDSL as the CuTe-DSL-equivalent depth, on the same per-second rental model.
+
 Maybe later, if I still have energy: MoE inference (M31), disaggregated
 prefill/decode (M32).
 
@@ -243,7 +250,9 @@ README.md  ROADMAP.md  FAILURES.md  CHANGELOG.md  LICENSE
                             glossary), the FlashAttention Rosetta Stone — one
                             algorithm across CUDA / CuTe C++ / CuTe DSL / Triton —
                             the source-to-SASS compilation pipeline, and reading PTX
-                            + the profile-and-optimize loop; bridge to M23–M30
+                            + the profile-and-optimize loop, and the AMD stack (HIP,
+                            Composable Kernel, FlyDSL, AITER), and a practice method
+                            (one variable per experiment, cheap-first); bridge to M23–M30
                             Each chapter has a README.md indexing its sections.
                             Read top to bottom before M0; chapters grow as
                             the project does.
