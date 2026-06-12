@@ -8,7 +8,7 @@ version = "0.0.1"
 description = "Labs and shared harness for a learn-LLM-inference-from-the-GPU-up journey (see ROADMAP.md)"
 requires-python = ">=3.10"
 
-[project.optional-dependencies]
+[dependency-groups]
 dev = ["pytest>=8", "ruff>=0.4"]
 
 [tool.setuptools]
