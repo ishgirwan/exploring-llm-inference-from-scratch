@@ -193,6 +193,13 @@ three languages together.
 Checkpoint after M30: tag `v2.0`. I can author a custom kernel that holds its own
 against good hand-written code, and explain exactly why it's fast.
 
+M30 also carries a stretch outcome past the private benchmark: **upstream
+something**. A kernel improvement or fix merged into a library other people run —
+FlashInfer, vLLM, SGLang, flash-attn, or AITER on the AMD arm, where the
+contribution gap is widest ([Chapter 9 §5](09_kernel_engineering/05_amd_kernel_track.md)) —
+is the one artifact that proves the skill to someone who wasn't watching; a
+speedup that lives only in my own repo proves it only to me.
+
 Everything in Phase 5 above is NVIDIA. AMD is the thinner-staffed frontier — the same
 low-level skills transfer, but the kernel gap is wider and fewer hands close it.
 [Chapter 9 §5](09_kernel_engineering/05_amd_kernel_track.md) maps the AMD stack (HIP ↔
@@ -212,6 +219,36 @@ Two modules sit outside the phases, numbered after them but not gated on Phase 5
   practice already (Mooncake, vLLM, NVIDIA Dynamo —
   [Chapter 8 §3](08_optimizing_inference/03_scaling_past_one_gpu.md)), but a
   heavy multi-node build for one person; it stays a stretch goal.
+
+### The kernel-track reorder
+
+The phase order above is the full inference journey, and it treats Phase 5 as the
+optional summit. §9's second ambition inverts that: when kernel authorship is the
+goal that leads, most of Phases 2–4 stops being prerequisite and becomes breadth.
+Phase 5's real prerequisites are only Triton fluency (M1–M6), profiler fluency
+(M2.5, then M8's Nsight Compute work), and the attention algorithm
+([Chapter 5 §1](05_attention_and_kv_cache/01_attention.md), exercised in M16). So
+the same modules admit a second, shorter spine:
+
+```text
+  M0–M8     unchanged — the harness, the kernel patterns, the matmul
+            ladder, the first Nsight Compute session
+  M9–M11    only as far as M16 needs them: a transformer block and the
+            prefill/decode shapes, not yet the serving-engine work
+  M16       the simplified Triton FlashAttention, pulled forward — the
+            bridge between the Triton world and Chapter 9
+  M23–M30   the kernel-engineering track, entered directly
+```
+
+Deferred is not deleted: the serving engines (M12–M14), the output-touching
+optimizations (M15, M17–M19), and scale (M20–M22) stay on the list — a kernel
+engineer who knows where kernels sit in a serving stack chooses better targets —
+they just come after the kernel spine instead of before it. The checkpoint tags
+in §6 bind to modules, not to calendar order, so each still lands when its
+modules complete. The cost shape changes too: the H100 rentals of M23+ arrive
+months earlier, and the cheap-first sequencing in
+[Chapter 9 §6](09_kernel_engineering/06_how_i_practice.md) is what keeps that
+affordable.
 
 ## 6. Checkpoints
 
@@ -352,4 +389,6 @@ by taking at least one kernel and tuning it until it *matches or beats a strong
 reference* (cuBLAS, flash-attn) on a target GPU (M30). The end state I'm aiming
 for: given a GPU architecture and a model operation, I can translate it into a
 hardware-efficient custom kernel that holds its own against good hand-written code,
-and know exactly why it's fast.
+and know exactly why it's fast. And the proof I want to leave behind is public:
+at least one contribution merged into a kernel library other people actually run
+(the M30 stretch).

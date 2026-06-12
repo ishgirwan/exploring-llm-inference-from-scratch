@@ -10,8 +10,9 @@ something here I'm really explaining it to myself.
 
 The prerequisite reading is written: nine chapters, from how a GPU executes
 code up to multi-GPU serving and kernel engineering. The build phase — some 30
-modules of kernels, benchmarks, and serving experiments on rented GPUs — is
-next, and starts small.
+modules of kernels, benchmarks, and serving experiments on rented GPUs — has
+begun at the bottom: the repo skeleton (license, lint, tests, CI) is in place,
+and the measurement harness (M0) is the first real build.
 
 ## How to read this
 

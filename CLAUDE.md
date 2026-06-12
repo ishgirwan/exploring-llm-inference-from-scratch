@@ -6,14 +6,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 A **public, first-person learning journey** about how LLM inference runs on GPUs —
 kernels, memory, profiling, serving engines, and (Phase 5) writing competitive
-custom kernels. Right now it is **prose only**: 40 Markdown files across nine
-chapters plus `ROADMAP.md`, a short root `README.md`, and `LEARNING_PATH.md`
+custom kernels. It is **mostly prose**: ~40 Markdown files across nine
+chapters plus `ROADMAP.md`, a short root `README.md`, `LEARNING_PATH.md`
 (the stage-by-stage path that braids chapter reading into the labs — read-before /
-build / in-lab questions / read-after / takeaway / carry-forward per stage).
-There is **no code, no build, no tests, and no lint** — the labs and benchmarks
-(modules M0–M32) are *planned* in `ROADMAP.md` and `LEARNING_PATH.md` but not
-yet built. "Working in this repo" almost always means **authoring or editing
-Markdown docs**, not running anything. Do not invent build/test commands.
+build / in-lab questions / read-after / takeaway / carry-forward per stage), and
+`FAILURES.md`/`CHANGELOG.md` stubs. The only code is the **Stage 0 skeleton**:
+`pyproject.toml`, an empty `common/` package, `tests/` with a GPU-marker
+auto-skip (`@pytest.mark.gpu` tests skip without CUDA), and a CPU-only CI
+workflow. **Lint is `ruff check .`; tests are `pytest`** — both run inside
+`.venv/` locally. The labs and benchmarks themselves (modules M0–M32) are
+*planned* in `ROADMAP.md` and `LEARNING_PATH.md` but not yet built; the harness
+internals (`bench.py`, `correctness.py`, `results_schema.py`) and
+`BENCHMARKING.md` are deliberately left for the author to write as M0 learning
+work — do not scaffold them unasked. "Working in this repo" still mostly means
+**authoring or editing Markdown docs**.
 
 `ROADMAP.md` is the entry point and master plan (the root `README.md` is a short
 pointer into it). It

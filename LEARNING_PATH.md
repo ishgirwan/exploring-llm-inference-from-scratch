@@ -405,6 +405,12 @@ purpose**: M8+ gets its stage blocks written when v0.1 lands, informed by
 whatever Phase 1 actually taught. Breaking down M16 today would be planning
 fiction.
 
+One fork is worth naming now: the roadmap defines a second order through the
+same modules — [the kernel-track reorder](ROADMAP.md#the-kernel-track-reorder)
+(M0–M8 → a minimal M9–M11 → M16 → M23–M30), for when kernel authorship leads.
+Phase 1 is identical under both orders, so nothing in this file changes until
+v0.1 lands and the fork becomes a real choice.
+
 ## 14. Standing rules
 
 ```text
