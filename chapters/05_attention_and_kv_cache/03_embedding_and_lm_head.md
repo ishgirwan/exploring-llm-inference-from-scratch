@@ -26,7 +26,7 @@ Prerequisites:
 (the layer graph these two bracket) and
 [end-to-end §4](../02_cuda_software_stack/02_end_to_end_inference.md#4-stage-1--the-prompt-arrives-and-becomes-tokens)
 (tokenization, which produces the token IDs the embedding consumes).
-Next: M9 in the [Roadmap](../ROADMAP.md) — where both ends get wired into the
+Next: M9 in the [Roadmap](../../ROADMAP.md) — where both ends get wired into the
 block, and M11, where the LM head's last-position logits drive prefill.
 
 ## 1. Where the two ends sit

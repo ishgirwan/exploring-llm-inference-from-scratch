@@ -19,7 +19,7 @@ Prerequisites:
 (its §5 transformer-layer graph and §7 decode loop), and
 [GPU execution model §15](../01_hardware_fundamentals/03_gpu_model.md#15-why-llm-inference-is-often-memory-bound)
 (memory-bound vs compute-bound).
-Next: M9–M10 in the [Roadmap](../ROADMAP.md) — where this gets built and measured.
+Next: M9–M10 in the [Roadmap](../../ROADMAP.md) — where this gets built and measured.
 
 ## 1. What attention is for
 

@@ -3,7 +3,7 @@
 Chapters 1–8 are the foundation reading for the build journey (M0–M22): they build
 the understanding to follow LLM inference from the first kernel to a serving
 engine. **This chapter is different.** It's the conceptual prework for the
-[Phase 5 kernel-engineering track](../ROADMAP.md) (M23–M30) — the deeper, optional
+[Phase 5 kernel-engineering track](../../ROADMAP.md) (M23–M30) — the deeper, optional
 phase where the goal stops being "explain the gap to production kernels" and becomes
 "close it." Read it when that track begins, or out of curiosity now; it's *not*
 required before M0.
@@ -32,4 +32,4 @@ cheapest, highest-value reps first.
 | 6 | [How I practice the kernel track](06_how_i_practice.md) | The *method* over the modules, not another tool: the one rule that makes practice compound — change exactly one dimension per experiment (which settles "same kernel on many GPUs" vs "many kernels on one GPU"); the dimensions (optimization level, baseline/provider, kernel type, GPU arch, vendor, model) ranked by value-per-dollar; reading a kernel's improvement history into a *move-list* as the free, zero-GPU rep; study-then-extend vs the model-kernel-by-kernel capstone; and the cheap→expensive sequence (read → GEMM-vs-cuBLAS → attention → arch sweep → model → AMD) as a lens over M23–M30 |
 
 Prerequisites: [Chapter 7 — Writing and tuning kernels](../07_writing_and_tuning_kernels/README.md), especially its [kernel-language landscape](../07_writing_and_tuning_kernels/03_kernel_languages_landscape.md); and [Chapter 5 — Anatomy of a forward pass](../05_attention_and_kv_cache/README.md) for the attention algorithm.
-Next: the Phase 5 modules (M23–M30) in the [Roadmap](../ROADMAP.md) — where these ideas get built, run, and measured.
+Next: the Phase 5 modules (M23–M30) in the [Roadmap](../../ROADMAP.md) — where these ideas get built, run, and measured.

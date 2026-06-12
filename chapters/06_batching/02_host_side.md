@@ -16,7 +16,7 @@ instruction.
 Prerequisites: [Batching: the throughput lever](01_batching.md), especially its
 continuous-batching section, and the request lifecycle from
 [Chapter 2's end-to-end doc](../02_cuda_software_stack/02_end_to_end_inference.md).
-Next: M11–M14 in the [Roadmap](../ROADMAP.md), where engines get benchmarked —
+Next: M11–M14 in the [Roadmap](../../ROADMAP.md), where engines get benchmarked —
 with one eye on the host.
 
 ## 1. The budget: a decode step is a few milliseconds

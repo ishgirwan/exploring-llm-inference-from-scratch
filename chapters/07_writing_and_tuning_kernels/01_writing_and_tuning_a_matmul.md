@@ -32,7 +32,7 @@ Prerequisites: [Chapter 1 — Hardware fundamentals](../01_hardware_fundamentals
 [Chapter 2 — The CUDA software stack](../02_cuda_software_stack/README.md)
 (CUDA/Triton, call-vs-build), [Chapter 3 — Numerical types](../03_numerical_types/README.md),
 and [Chapter 4 — Measurement](../04_measurement/README.md).
-Next: M1 in the [Roadmap](../ROADMAP.md).
+Next: M1 in the [Roadmap](../../ROADMAP.md).
 
 ---
 
@@ -414,7 +414,7 @@ The trap, from the AI-kernel discourse: a speedup "vs handwritten" that's really
 the *naive* baseline, or that's measured on an unverified kernel, is not a real
 result. Beating the naive kernel is easy; beating cuBLAS is the bar, and it is
 genuinely hard — a production GEMM is hundreds of person-months of
-architecture-specific work ([Roadmap §9](../ROADMAP.md)). So this doc is the *map*:
+architecture-specific work ([Roadmap §9](../../ROADMAP.md)). So this doc is the *map*:
 M6 builds simplified versions, measures the gap to cuBLAS honestly, and reads the
 real implementations to explain it.
 

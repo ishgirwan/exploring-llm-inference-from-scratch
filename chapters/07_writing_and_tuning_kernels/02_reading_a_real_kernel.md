@@ -2,7 +2,7 @@
 
 [Section 1](01_writing_and_tuning_a_matmul.md) is the *concepts* of writing and
 tuning a kernel. This section is the *code* — but rather than build one from
-scratch, it does what [Roadmap §9](../ROADMAP.md) says the honest version of
+scratch, it does what [Roadmap §9](../../ROADMAP.md) says the honest version of
 learning looks like: **read a real, optimized open-source kernel and understand
 what was done to it.** Then §1's ladder stops being abstract — you can see each
 rung in actual source you can pull up and run yourself.

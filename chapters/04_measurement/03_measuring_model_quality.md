@@ -12,7 +12,7 @@ it.
 Prerequisites: [Benchmarking methodology](01_benchmarking.md) — this doc reuses
 its fixed-environment discipline — and [Chapter 3](../03_numerical_types/README.md)
 for what quantization does to a weight.
-Next: M15, M19 and M22 in the [Roadmap](../ROADMAP.md), whose reports carry the
+Next: M15, M19 and M22 in the [Roadmap](../../ROADMAP.md), whose reports carry the
 quality column this doc defines.
 
 ## 1. Two different ways to be wrong

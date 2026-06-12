@@ -28,7 +28,7 @@ Prerequisites:
 [Attention §7–§8](../05_attention_and_kv_cache/01_attention.md#7-the-kv-cache-what-it-stores-and-why-its-shaped-that-way),
 [MLP §7](../05_attention_and_kv_cache/02_mlp_feedforward.md#7-why-mlp-decode-is-weight-memory-bound--the-first-wall),
 and [Numerical types — integer types](../03_numerical_types/01_floating_point.md#integer-types-int8-int4).
-Next: M15–M19 in the [Roadmap](../ROADMAP.md) (and M11–M14 for the serving side).
+Next: M15–M19 in the [Roadmap](../../ROADMAP.md) (and M11–M14 for the serving side).
 
 ## 1. The one quantity decode is bound by
 

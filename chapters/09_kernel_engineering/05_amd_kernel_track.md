@@ -1,6 +1,6 @@
 # Kernels on AMD: ROCm, Composable Kernel, and FlyDSL
 
-The [Phase 5 kernel-engineering track](../ROADMAP.md) (M23–M30), and the four
+The [Phase 5 kernel-engineering track](../../ROADMAP.md) (M23–M30), and the four
 chapter-9 docs before this one, are entirely about NVIDIA: CuTe DSL, Hopper's
 TMA/WGMMA, Blackwell's tcgen05. That's a deliberate narrowing — NVIDIA is where the
 tooling is deepest and where I learn fastest — but it isn't the whole map. There is a
@@ -25,7 +25,7 @@ Prerequisites: [CuTe DSL foundations](01_cute_dsl_foundations.md) (the stack pic
 [kernel-language landscape](../07_writing_and_tuning_kernels/03_kernel_languages_landscape.md)
 (the productivity-vs-control ladder). A bare **§N** below means *this doc's* section N;
 references to other docs are always links.
-Next: the [Phase 5 kernel-engineering track (M23–M30)](../ROADMAP.md) — where the
+Next: the [Phase 5 kernel-engineering track (M23–M30)](../../ROADMAP.md) — where the
 optional AMD arm this doc proposes would get built and measured.
 
 ---
@@ -212,7 +212,7 @@ own section. Two rules govern it.
 **Rule 1 — never rent a persistent box; bill by the second.** A profiling session is
 minutes of GPU time, not hours. Serverless / per-second platforms (Modal, RunPod
 serverless) mean a kernel run costs cents: spin up, profile, tear down. This extends the
-[ROADMAP §4 hardware table](../ROADMAP.md) — same rented-GPU model, but pushed to its
+[ROADMAP §4 hardware table](../../ROADMAP.md) — same rented-GPU model, but pushed to its
 per-second limit so the kernel-engineering phase stays affordable.
 
 **Rule 2 — respect the floor; it's higher on AMD.** On NVIDIA a cheap consumer card is

@@ -27,8 +27,8 @@ defines the M-module/phase model: **Chapters 1–8 are the reference library —
 readable straight through, or pulled section-by-section just-in-time as
 `LEARNING_PATH.md` braids them into the labs; Chapter 9 is Phase-5 prework, read
 later, not before M0.** Each chapter is a
-directory (`NN_topic/`) containing a `README.md` that indexes its sections and
-numbered `NN_section.md` docs.
+directory (`chapters/NN_topic/`) containing a `README.md` that indexes its
+sections and numbered `NN_section.md` docs.
 
 Hardware reality that shapes every doc: **there is no local NVIDIA GPU (remote-only).**
 Nothing is run locally; GPU work happens on rented GPUs at M-module time.

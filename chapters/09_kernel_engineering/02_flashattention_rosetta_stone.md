@@ -17,7 +17,7 @@ So you can hold the algorithm fixed and watch *only the language change* — and
 exactly which work each rung forces you to write by hand versus hands to a compiler.
 This doc is that side-by-side read. It's the conceptual prework for **M25**
 (FlashAttention Rosetta Stone) and **M26** (build it yourself) in the
-[Phase 5 track](../ROADMAP.md), and it builds directly on the
+[Phase 5 track](../../ROADMAP.md), and it builds directly on the
 [CuTe DSL foundations](01_cute_dsl_foundations.md) doc — I use *layout*, *atom*,
 *WGMMA*, *TMA*, *warp specialization*, and *tcgen05* here as defined there.
 

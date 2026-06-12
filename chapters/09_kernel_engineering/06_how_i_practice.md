@@ -1,6 +1,6 @@
 # How I practice the kernel track: one variable at a time, cheapest dimension first
 
-The [Phase 5 modules](../ROADMAP.md) (M23–M30) list *what* to build. This doc is the
+The [Phase 5 modules](../../ROADMAP.md) (M23–M30) list *what* to build. This doc is the
 *how*: the method I use to practice them so the hours compound into skill instead of
 scattering, and the order I run them in so the cheap, high-value reps come first. It's a
 lens over the existing M-modules, not a change to them — read it alongside the roadmap.
@@ -17,7 +17,7 @@ Prerequisites: [Chapter 4 — Measurement](../04_measurement/README.md) (the
 benchmark-and-attribute discipline this whole method rests on) and
 [CuTe DSL foundations](01_cute_dsl_foundations.md) (the tools the practice uses). A bare
 **§N** means *this doc's* section N; references to other docs are links.
-Next: the [Phase 5 modules (M23–M30)](../ROADMAP.md), which this method sequences.
+Next: the [Phase 5 modules (M23–M30)](../../ROADMAP.md), which this method sequences.
 
 ---
 

@@ -26,4 +26,4 @@ M31, and M32.
 | 3 | [Scaling past one GPU](03_scaling_past_one_gpu.md) | Capacity vs speed as the reasons to split; tensor parallelism (two all-reduces per layer, NVLink vs PCIe), pipeline parallelism (capacity, not per-token speed), expert parallelism (MoE's all-to-all), data parallelism (replicas); what NCCL collectives cost; disaggregation revisited as the split by phase, now production practice (Mooncake, vLLM, NVIDIA Dynamo) |
 
 Prerequisites: [Chapter 5 — Anatomy of a forward pass](../05_attention_and_kv_cache/README.md) and [Chapter 6 — Batching](../06_batching/README.md).
-Next: M11–M19 in the [Roadmap](../ROADMAP.md) — where these optimizations get built and measured.
+Next: M11–M19 in the [Roadmap](../../ROADMAP.md) — where these optimizations get built and measured.

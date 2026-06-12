@@ -25,7 +25,7 @@ Prerequisites:
 [end-to-end §5](../02_cuda_software_stack/02_end_to_end_inference.md#5-stage-2--prefill-a-transformer-layer-is-a-graph-of-kernels)
 (the layer graph these sit in) and [attention §1](01_attention.md#1-what-attention-is-for)
 (where the Q and K that RoPE rotates come from).
-Next: M4 and M5 in the [Roadmap](../ROADMAP.md) — the RMSNorm and RoPE kernels,
+Next: M4 and M5 in the [Roadmap](../../ROADMAP.md) — the RMSNorm and RoPE kernels,
 built and measured.
 
 ## 1. What "glue" means, and why it gets its own section

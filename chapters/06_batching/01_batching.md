@@ -20,7 +20,7 @@ Prerequisites:
 [Attention §7–§8](../05_attention_and_kv_cache/01_attention.md#7-the-kv-cache-what-it-stores-and-why-its-shaped-that-way),
 [MLP §7](../05_attention_and_kv_cache/02_mlp_feedforward.md#7-why-mlp-decode-is-weight-memory-bound--the-first-wall),
 and [execution model §15](../01_hardware_fundamentals/03_gpu_model.md#15-why-llm-inference-is-often-memory-bound).
-Next: M11–M13 in the [Roadmap](../ROADMAP.md).
+Next: M11–M13 in the [Roadmap](../../ROADMAP.md).
 
 ## 1. The problem batching solves
 

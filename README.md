@@ -22,10 +22,11 @@ and the measurement harness (M0) is the first real build.
   and labs braided together, stage by stage, each lab with the questions to
   ask inside it, the takeaway to internalize, and the question it hands to
   the next.
-- **Chapters 1–8** — the reference library. Read straight through (~7–9 hrs)
-  from [`01_hardware_fundamentals/`](01_hardware_fundamentals/README.md) if
-  reading-first suits you, or pull sections just-in-time as the learning path
-  calls them.
+- **Chapters 1–8** — the reference library, under [`chapters/`](chapters/).
+  Read straight through (~7–9 hrs) from
+  [`chapters/01_hardware_fundamentals/`](chapters/01_hardware_fundamentals/README.md)
+  if reading-first suits you, or pull sections just-in-time as the learning
+  path calls them.
 - **Chapter 9** — kernel-engineering prework for the final phase; read it when
   that phase starts, not first.
 

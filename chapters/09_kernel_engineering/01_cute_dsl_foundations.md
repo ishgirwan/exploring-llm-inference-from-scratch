@@ -10,7 +10,7 @@ vocabulary (MMA, DMA, TMA, WGMMA, tcgen05) that every low-level kernel doc throw
 around without defining. It's the vocabulary the rest of this chapter assumes.
 
 This is the conceptual prework for **M23** (CuTe DSL foundations) in the
-[Phase 5 kernel-engineering track](../ROADMAP.md). Unlike Chapters 1–8, this chapter
+[Phase 5 kernel-engineering track](../../ROADMAP.md). Unlike Chapters 1–8, this chapter
 isn't pre-M0 reading — it's for when the kernel-engineering track begins (or out of
 curiosity now).
 

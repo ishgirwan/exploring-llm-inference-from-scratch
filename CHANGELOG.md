@@ -6,6 +6,9 @@ change; checkpoint tags (`v0.1`, `v0.2`, …) get their own entry.
 
 Format: `YYYY-MM-DD — what changed, in one line.`
 
+- 2026-06-12 — Moved the nine chapter directories under `chapters/` and fixed
+  every root↔chapter link. Old deep links into chapter files break; the
+  chapter-to-chapter links survive unchanged.
 - 2026-06-12 — Switched package management to uv: `uv.lock` committed, dev
   tools in a dependency group, CI runs `uv sync` + `uv run`.
 - 2026-06-12 — Stage 0 scaffolding: Apache-2.0 license, Python skeleton

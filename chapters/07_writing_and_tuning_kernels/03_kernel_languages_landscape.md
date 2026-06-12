@@ -11,7 +11,7 @@ This doc is the map. It does three things: lays out the *one axis* that orders
 every kernel-authoring tool, walks the *timeline* of how that axis went from a
 clean two-way choice to a crowded spectrum (and why the hardware forced it), and
 ends on **what I'll actually reach for, and in what order**. It's a survey, not a
-build — the building is M1–M6 and M16 in the [Roadmap](../ROADMAP.md).
+build — the building is M1–M6 and M16 in the [Roadmap](../../ROADMAP.md).
 
 **Honesty up front.** This project has no local NVIDIA GPU (it's remote-only), so
 nothing below is benchmarked by me. Where I quote a performance number it's from a
@@ -24,7 +24,7 @@ Prerequisites: [§1](01_writing_and_tuning_a_matmul.md) (the optimization ladder
 and its tuning-knob vocabulary) and the
 [CUDA software stack doc](../02_cuda_software_stack/01_the_stack.md) (the
 *call-vs-build* framing, and the definitions of **DSL**, **PTX**, **SASS**).
-Next: M1 in the [Roadmap](../ROADMAP.md).
+Next: M1 in the [Roadmap](../../ROADMAP.md).
 
 Throughout this doc, a bare **§N** means *this doc's* section N. References to the
 other sections of this chapter are always written as links.

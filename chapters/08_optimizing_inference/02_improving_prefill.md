@@ -16,7 +16,7 @@ Prerequisites:
 [Batching §3 and §8](../06_batching/01_batching.md#3-the-roofline-view-climbing-toward-the-ridge),
 [End-to-end §5](../02_cuda_software_stack/02_end_to_end_inference.md#5-stage-2--prefill-a-transformer-layer-is-a-graph-of-kernels),
 and [Improving decode §5](01_improving_decode.md#5-the-agent-case-prefix-caching-wraps-the-shared-part).
-Next: M11–M16 in the [Roadmap](../ROADMAP.md).
+Next: M11–M16 in the [Roadmap](../../ROADMAP.md).
 
 ## 1. Prefill is already compute-bound
 

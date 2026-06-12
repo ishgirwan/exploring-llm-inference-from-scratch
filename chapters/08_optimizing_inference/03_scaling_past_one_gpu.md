@@ -10,7 +10,7 @@ the numbers get made.
 Prerequisites: [Improving decode](01_improving_decode.md) for the bytes-per-token
 framing, and [Chapter 5's MoE section](../05_attention_and_kv_cache/06_moe.md)
 for what an expert is.
-Next: M20, M31 and M32 in the [Roadmap](../ROADMAP.md).
+Next: M20, M31 and M32 in the [Roadmap](../../ROADMAP.md).
 
 ## 1. Why one GPU runs out
 

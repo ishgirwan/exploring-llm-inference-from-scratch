@@ -17,7 +17,7 @@ Prerequisites: [The MLP / feed-forward block](02_mlp_feedforward.md) — an expe
 *is* that block — and [Attention and the KV cache](01_attention.md) for the
 decode-is-memory-bound framing this doc keeps leaning on.
 Next: [Attention variants](07_attention_variants.md) — the other place the dense
-map bends — and M31 in the [Roadmap](../ROADMAP.md), where a toy MoE gets built.
+map bends — and M31 in the [Roadmap](../../ROADMAP.md), where a toy MoE gets built.
 
 ## 1. The dense assumption, and why it binds
 

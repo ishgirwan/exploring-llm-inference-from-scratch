@@ -16,7 +16,7 @@ so the M3.5 sampling-kernel build starts from known behaviour.
 Prerequisites: [the LM head](03_embedding_and_lm_head.md#3-the-lm-head-the-mirror-operation)
 (where logits come from) and [attention §3](01_attention.md#3-the-computation-step-by-step)
 (the softmax, reused here on a different input).
-Next: M3.5 in the [Roadmap](../ROADMAP.md) — the sampling kernels (top-k, top-p,
+Next: M3.5 in the [Roadmap](../../ROADMAP.md) — the sampling kernels (top-k, top-p,
 temperature, repetition penalty).
 
 ## 1. The job, and why it's a GPU step

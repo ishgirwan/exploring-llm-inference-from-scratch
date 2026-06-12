@@ -15,7 +15,7 @@ quantization work start from known numbers.
 Prerequisites: [Attention and the KV cache](01_attention.md) (its §6 prefill-vs-decode
 shapes and §8 two-walls discussion), and
 [end-to-end §5](../02_cuda_software_stack/02_end_to_end_inference.md#5-stage-2--prefill-a-transformer-layer-is-a-graph-of-kernels).
-Next: M9 in the [Roadmap](../ROADMAP.md).
+Next: M9 in the [Roadmap](../../ROADMAP.md).
 
 ## 1. What the MLP is for
 
