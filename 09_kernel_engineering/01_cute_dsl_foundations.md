@@ -355,7 +355,24 @@ Gluon/TLX is the gentler descent; CuTe DSL is the deeper, hardware-leading commi
 
 ---
 
-## 8. What to carry forward
+## 8. Further reading
+
+CuTe DSL is new and moves fast; these are the sources I rely on for layouts, atoms,
+and the hardware underneath:
+
+- **[CUTLASS](https://github.com/NVIDIA/cutlass)** (NVIDIA) — home of CuTe and the Python
+  CuTe DSL: the layout / tensor / atom abstractions of §2–§4, with the C++ source the DSL
+  mirrors.
+- **[Colfax Research — CUTLASS tutorials](https://research.colfax-intl.com/category/papers/tutorials/)**
+  (Colfax) — the clearest worked tutorials on CuTe layouts, tiled MMA/copy, and Hopper
+  WGMMA GEMMs; the step-by-step companion to §2–§4.
+- **[NVIDIA Hopper Architecture In-Depth](https://developer.nvidia.com/blog/nvidia-hopper-architecture-in-depth/)**
+  (NVIDIA) — the hardware the atoms in §4 map onto: WGMMA, TMA, and the asynchronous units
+  a CuTe kernel orchestrates.
+- **[Triton](https://triton-lang.org/)** (OpenAI) — the tile-level language §1 contrasts
+  CuTe DSL against; reading both shows what each makes explicit versus hides.
+
+## 9. What to carry forward
 
 ```text
 the stack: CUDA C++ → CUTLASS → CuTe → CuTe DSL (§1)   -> M23, M24 (three-way GEMM)

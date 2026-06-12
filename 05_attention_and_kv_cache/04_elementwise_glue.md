@@ -169,7 +169,24 @@ number of tokens either way and never becomes the matmul-style bottleneck — it
 the matmuls and the KV cache that dominate, and the glue that fusion tucks in
 around them.
 
-## 6. What to carry forward
+## 6. Further reading
+
+One primary source per glue op, plus the explainer that makes RoPE click:
+
+- **[Root Mean Square Layer Normalization](https://arxiv.org/abs/1910.07467)** (Zhang &
+  Sennrich, 2019) — the paper that introduced RMSNorm (§2): why dropping LayerNorm's
+  mean-centering keeps the stabilizing effect at lower cost.
+- **[RoFormer: Enhanced Transformer with Rotary Position Embedding](https://arxiv.org/abs/2104.09864)**
+  (Su et al., 2021) — the original RoPE paper (§3): encoding position by *rotating* Q and
+  K so that attention sees relative distance.
+- **[Rotary Embeddings: A Relative Revolution](https://blog.eleuther.ai/rotary-embeddings/)**
+  (EleutherAI, 2021) — the diagram-driven walk-through that made RoPE intuitive for me;
+  the visual companion to the math in §3.
+- **[Deep Residual Learning for Image Recognition](https://arxiv.org/abs/1512.03385)** (He
+  et al., 2015) — the ResNet paper that introduced the skip connection (§4), and the
+  reason very deep stacks stay trainable.
+
+## 7. What to carry forward
 
 ```text
 RMSNorm = rescale a vector to RMS 1, times a gain (§2)   -> M4, the RMSNorm kernel

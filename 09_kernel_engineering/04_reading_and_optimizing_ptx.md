@@ -238,7 +238,24 @@ The decision rule, the whole calibration of this chapter in one line:
 
 ---
 
-## 7. What to carry forward
+## 7. Further reading
+
+The read-PTX → profile → diagnose → fix loop runs on two NVIDIA manuals and a lot
+of practice:
+
+- **[Nsight Compute Kernel Profiling Guide](https://docs.nvidia.com/nsight-compute/ProfilingGuide/)**
+  (NVIDIA) — defines Speed-of-Light and the warp-stall reasons §3 reads (Long Scoreboard,
+  LG Throttle, …); the reference for "the profiler names the wall."
+- **[PTX ISA](https://docs.nvidia.com/cuda/parallel-thread-execution/)** (NVIDIA) — what
+  the register types, memory-space qualifiers, and cache operators in §1–§2 mean when you
+  read a dump.
+- **[CUDA C++ Best Practices Guide](https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/)**
+  (NVIDIA) — the ordered optimization priorities behind §4's symptom → change map: profile
+  first, fix memory before compute, then chase occupancy.
+- **[GPU MODE lectures](https://github.com/gpu-mode/lectures)** (Mark Saroufim & Andreas
+  Köpf) — recorded sessions that run this exact profile-and-optimize loop on real kernels.
+
+## 8. What to carry forward
 
 ```text
 read PTX: register types, memory space, vector width,           -> M8, M24, reading any dump

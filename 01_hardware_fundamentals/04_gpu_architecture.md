@@ -225,6 +225,24 @@ proprietary signaling variant developed by Micron with NVIDIA, faster than
 plain GDDR6. The "e" in HBM2e is JEDEC's marker for an enhanced revision of
 HBM2 with higher per-pin signaling. HBM3 is the next generation again.
 
+## 8. Further reading
+
+This doc is a reference companion, so its further reading is reference-grade too —
+the primary sources behind the compute-capability and architecture tables:
+
+- **[CUDA GPU Compute Capability](https://developer.nvidia.com/cuda-gpus)** (NVIDIA)
+  — the official table mapping every GPU to its compute-capability number; the
+  authoritative version of §6 and the CC column in §7.
+- **[CUDA C++ Programming Guide — Compute Capabilities](https://docs.nvidia.com/cuda/cuda-programming-guide/05-appendices/compute-capabilities.html)**
+  (NVIDIA) — the appendix that lists, per compute capability, exactly which features
+  and instructions a GPU supports; where the §5–§6 feature gates come from.
+- **[NVIDIA Hopper Architecture In-Depth](https://developer.nvidia.com/blog/nvidia-hopper-architecture-in-depth/)**
+  (NVIDIA) — a worked example of one architecture generation (the H100 from §7): its
+  SMs, fourth-gen Tensor Cores, and HBM3, with the diagrams that make §3–§5 concrete.
+- **[TechPowerUp GPU Database](https://www.techpowerup.com/gpu-specs/)** — the
+  third-party database I use to look up and compare the per-GPU specs in §7 (SM count,
+  VRAM, bandwidth, clocks) across the whole T4 → H100 range.
+
 ## What's coming
 
 Topics this doc will pick up as the project gets there:

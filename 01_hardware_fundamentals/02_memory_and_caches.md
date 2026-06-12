@@ -571,6 +571,28 @@ These features make one instruction stream progress quickly.
 That design uses significant chip area per core, so CPUs usually have a modest
 number of large cores.
 
+## 6. Further reading
+
+The sources I lean on for the memory side — why fast and large storage are built
+from different circuits, what the hierarchy buys, and what a CPU core wraps around
+it all:
+
+- **[What Every Programmer Should Know About Memory](https://people.freebsd.org/~lstewart/articles/cpumemory.pdf)**
+  (Ulrich Drepper, 2007) — the canonical long-form explainer of DRAM, the cache
+  hierarchy, and why locality dominates performance; §2–§4 here are the compressed
+  version of its first half.
+- **[Digital Design and Computer Architecture](https://pages.hmc.edu/harris/ddca/)**
+  (David & Sarah Harris) — clean schematic-level diagrams of the 6T SRAM and 1T1C
+  DRAM cells from §2 and how they tile up into a memory array.
+- **[Computer Architecture: A Quantitative Approach](https://shop.elsevier.com/books/computer-architecture/hennessy/978-0-12-811905-1)**
+  (Hennessy & Patterson, 6th ed., 2017) — the rigorous account of the memory
+  hierarchy and of the out-of-order and branch-prediction machinery a core layers on
+  top (§5), backed by the measurements that justify each choice.
+- **[Gallery of Processor Cache Effects](http://igoro.com/archive/gallery-of-processor-cache-effects/)**
+  (Igor Ostrovsky, 2010) — short, code-driven demos where timings fall off a cliff at
+  cache-line and associativity boundaries; the empirical proof that the hierarchy in
+  §3–§4 is real and measurable.
+
 ---
 
 Next: [The GPU execution model](03_gpu_model.md) — what changes when many independent

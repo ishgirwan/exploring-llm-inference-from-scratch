@@ -184,3 +184,20 @@ iterations 1, 5, 10, and 100 separately and observe the convergence.
 
 The shape of the convergence indicates which effect dominates, which in turn
 indicates whether the warm-up count should be increased for that kernel.
+
+## 9. Further reading
+
+The primary sources behind each first-run effect, and the tools that hide them:
+
+- **[CUDA semantics](https://docs.pytorch.org/docs/stable/notes/cuda.html)** (PyTorch)
+  — documents the caching allocator (§1) and the lazy CUDA-context initialization (§6)
+  that make a first call mysteriously slow.
+- **[Triton: Matrix Multiplication tutorial](https://triton-lang.org/main/getting-started/tutorials/03-matrix-multiplication.html)**
+  (Triton) — shows JIT compilation (§2) and `@triton.autotune` (§3) in action: the
+  first call pays to compile and to search the config space.
+- **[How to Implement Performance Metrics in CUDA C/C++](https://developer.nvidia.com/blog/how-implement-performance-metrics-cuda-cc/)**
+  (Mark Harris, NVIDIA) — the timing discipline that turns warm-up (§7) and the
+  iteration-by-iteration diagnostic (§8) into something measurable rather than guessed.
+- **[torch.utils.benchmark](https://docs.pytorch.org/docs/stable/benchmark_utils.html)**
+  (PyTorch) — a `Timer` that runs its own warm-up and synchronization, the practical
+  antidote to nearly every effect in §1–§7.

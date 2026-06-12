@@ -316,7 +316,25 @@ The value of reading this one is that **every rung of §1's ladder is visible in
 or visibly delegated to the compiler** — and you can clone the repo, run it on a
 rented GPU, and watch the autotuner pick a config.
 
-## 8. What to carry forward
+## 8. Further reading
+
+This doc reads one real kernel; these let you read more, and understand the
+compiler doing the work underneath:
+
+- **[Triton: Matrix Multiplication tutorial](https://triton-lang.org/main/getting-started/tutorials/03-matrix-multiplication.html)**
+  (Triton) — the exact kernel this doc walks through; clone it, run it on a rented GPU,
+  and watch the autotuner pick a config (§4, §6).
+- **[Introducing Triton](https://openai.com/index/triton/)** (Philippe Tillet, OpenAI,
+  2021) — the motivation and the tile model behind `tl.dot` and the block pointers in §3;
+  why a ~25-line kernel can reach cuBLAS-class speed.
+- **[Triton: An Intermediate Language and Compiler for Tiled Neural Network Computations](https://www.eecs.harvard.edu/~htk/publication/2019-mapl-tillet-kung-cox.pdf)**
+  (Tillet, Kung & Cox, MAPL 2019) — the paper on what the compiler adds for you
+  (coalescing, pipelining): the other half of "what you write vs what it generates."
+- **[GPU MODE lectures](https://github.com/gpu-mode/lectures)** (Mark Saroufim & Andreas
+  Köpf) — recorded, code-along readings of real Triton and CUDA kernels, the next step
+  after this single walk-through.
+
+## 9. What to carry forward
 
 ```text
 read the real source, map it to the concepts (this doc)   -> M6, do it for real

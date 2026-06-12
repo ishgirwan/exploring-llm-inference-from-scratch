@@ -687,6 +687,29 @@ GPU chip diagrams, what one SM holds inside, and how the software you write
 chip-area trade and later sets the two chips side by side in "CPU and GPU at
 the chip level".
 
+## 8. Further reading
+
+Where I'd go to deepen each layer of this doc — chosen for building the hardware
+up from the same gate-and-adder starting point, with diagrams or animations doing
+the explaining rather than prose alone:
+
+- **[Code: The Hidden Language of Computer Hardware and Software](https://www.codehiddenlanguage.com/)**
+  (Charles Petzold, 2nd ed., 2022) — the gentlest climb from a single bit (§2) to a
+  working CPU; the companion site animates the very gate and adder circuits this doc
+  draws in §3–§4.
+- **[nand2tetris — The Elements of Computing Systems](https://www.nand2tetris.org/)**
+  (Noam Nisan & Shimon Schocken, MIT Press, 2nd ed.) — builds a complete computer
+  starting from one NAND gate, which is exactly the transistors → logic → arithmetic
+  climb of §3–§4 turned into hands-on projects.
+- **[Digital Design and Computer Architecture](https://pages.hmc.edu/harris/ddca/)**
+  (David & Sarah Harris) — the textbook treatment of gates, adders, the ALU, the
+  register file, and the fetch/decode/execute pipeline (§4–§6), with the clearest
+  schematic diagrams I've found.
+- **[Building an 8-bit breadboard computer](https://eater.net/8bit)** (Ben Eater) —
+  a video series that physically wires an ALU, registers, and a control unit out of
+  logic-gate chips; watching a carry ripple through real LEDs is what made the §4
+  adder stop being abstract for me.
+
 ---
 
 Next: [Memory and caches](02_memory_and_caches.md) — what feeds these

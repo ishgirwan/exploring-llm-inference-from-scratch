@@ -418,7 +418,28 @@ architecture-specific work ([Roadmap §9](../ROADMAP.md)). So this doc is the *m
 M6 builds simplified versions, measures the gap to cuBLAS honestly, and reads the
 real implementations to explain it.
 
-## 18. What to carry forward
+## 18. Further reading
+
+The matmul optimization ladder is well-trodden ground; these are the climbs I
+found clearest, from a hand-written CUDA worklog up to production GEMM:
+
+- **[How to Optimize a CUDA Matmul Kernel for cuBLAS-like Performance](https://siboehm.com/articles/22/CUDA-MMM)**
+  (Simon Boehm, 2022) — a worklog that starts naive and climbs to ~95% of cuBLAS, one
+  optimization per step; the closest match to this doc's ladder (§5–§12), with code.
+- **[Matrix Multiplication Background User's Guide](https://docs.nvidia.com/deeplearning/performance/dl-performance-matrix-multiplication/index.html)**
+  (NVIDIA) — the GEMM arithmetic-intensity model: how to tell whether a given shape is
+  math- or memory-bound (§5, §11) and where Tensor Cores actually help.
+- **[Programming Massively Parallel Processors](https://shop.elsevier.com/books/programming-massively-parallel-processors/hwu/978-0-323-91231-0)**
+  (Hwu, Kirk & El Hajj, 4th ed., 2022) — the textbook derivation of shared-memory and
+  register tiling (§6–§7) and occupancy (§12).
+- **[Triton: Matrix Multiplication tutorial](https://triton-lang.org/main/getting-started/tutorials/03-matrix-multiplication.html)**
+  (Triton) — `@triton.autotune` over block / warp / stage configs, the literal version
+  of the config-space search in §12–§14.
+- **[CUTLASS](https://github.com/NVIDIA/cutlass)** (NVIDIA) — what the top of the ladder
+  looks like in practice: the architecture-specific scheduling and Tensor Core pipelines
+  a tutorial kernel delegates or omits (§16).
+
+## 19. What to carry forward
 
 ```text
 the four-part kernel skeleton (§1)               -> M1, the first kernels

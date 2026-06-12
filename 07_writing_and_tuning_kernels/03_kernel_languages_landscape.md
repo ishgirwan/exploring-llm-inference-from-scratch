@@ -286,7 +286,25 @@ bedrock — and real stacks blend all three. For learning, the rung matters less
 the four ideas every one of them shares: tiles, layouts, async data movement, and
 warp roles. Master those in one tool and the rest become syntax.
 
-## 9. What to carry forward
+## 9. Further reading
+
+The kernel-language ladder moves fast; these are the anchors for each rung and the
+hardware that reshaped it:
+
+- **[Introducing Triton](https://openai.com/index/triton/)** (Philippe Tillet, OpenAI,
+  2021) — the productivity end of the ladder (§1): the tile model that lets Python-level
+  code reach cuBLAS-class speed, and the rung M1–M6 start on.
+- **[CUTLASS](https://github.com/NVIDIA/cutlass)** (NVIDIA) — the control end: CUDA C++
+  templates plus the CuTe layout algebra and the newer Python CuTe DSL, the rungs §6–§8
+  point at and Chapter 9 builds on.
+- **[NVIDIA Hopper Architecture In-Depth](https://developer.nvidia.com/blog/nvidia-hopper-architecture-in-depth/)**
+  (NVIDIA) — the hardware that "opened the gap" in §4: WGMMA, TMA, and the warp
+  specialization the low rungs exist to express.
+- **[GPU MODE resource-stream](https://github.com/gpu-mode/resource-stream)** (Mark
+  Saroufim & Andreas Köpf) — a community-maintained, regularly-updated map of GPU
+  programming material across exactly these languages.
+
+## 10. What to carry forward
 
 ```text
 the productivity↔control axis (§1)              -> picking a language for any kernel

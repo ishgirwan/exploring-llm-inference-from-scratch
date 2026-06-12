@@ -253,7 +253,24 @@ hand-writing PTX: **read** the PTX your kernels generate, profile, and change at
 
 ---
 
-## 8. What to carry forward
+## 8. Further reading
+
+To see the source → PTX → SASS pipeline this doc traces, you mostly need the
+reference manuals and a tool that shows every stage at once:
+
+- **[PTX ISA](https://docs.nvidia.com/cuda/parallel-thread-execution/)** (NVIDIA) — the
+  spec for the virtual assembly in §2: register types, memory spaces, and the instructions
+  PTX exposes before `ptxas` lowers them to SASS.
+- **[CUDA Binary Utilities](https://docs.nvidia.com/cuda/cuda-binary-utilities/)** (NVIDIA)
+  — `cuobjdump` and `nvdisasm`, the tools §6 uses to dump real SASS out of a compiled
+  kernel.
+- **[Compiler Explorer (Godbolt)](https://godbolt.org/)** — compile CUDA or Triton in the
+  browser and watch source → PTX → SASS line up, color-mapped; the fastest way to do the §6
+  dump-and-diff without a local toolkit.
+- **[Triton (compiler)](https://github.com/triton-lang/triton)** (OpenAI) — the source for
+  the Triton half of the pipeline: the TTGIR → LLVM IR → PTX lowering behind §1–§2.
+
+## 9. What to carry forward
 
 ```text
 everyone ends at SASS; Triton & CuTe share PTX→ptxas→SASS (§1)  -> M23, the mental model

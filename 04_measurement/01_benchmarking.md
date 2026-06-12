@@ -304,3 +304,22 @@ A benchmark result is a draft until every box is checked:
 Absolute numbers differ across hardware. The *shape* of the result — which
 kernel is faster, by roughly what factor, and why — should reproduce. A failure
 to reproduce that shape is itself a finding and warrants an issue.
+
+## Further reading
+
+The methodology sources I trust for GPU timing — why naive wall-clock timing
+misleads, and what to measure instead:
+
+- **[How to Implement Performance Metrics in CUDA C/C++](https://developer.nvidia.com/blog/how-implement-performance-metrics-cuda-cc/)**
+  (Mark Harris, NVIDIA) — the canonical explanation of CUDA event timing and why you
+  synchronize before reading the clock; the mechanism behind "Timing on the GPU" and
+  "Synchronization."
+- **[torch.utils.benchmark](https://docs.pytorch.org/docs/stable/benchmark_utils.html)**
+  (PyTorch) — a `Timer` that bakes in warm-up, CUDA synchronization, and blocked
+  autorange, so the "Warm-up" and "Percentiles, not means" rules come for free.
+- **[Making Deep Learning Go Brrrr From First Principles](https://horace.io/brrr_intro.html)**
+  (Horace He, 2022) — the compute- / memory- / overhead-bound framing that decides
+  what a benchmark even means; the backbone of "Is the GPU actually busy?"
+- **[Roofline: An Insightful Visual Performance Model](https://people.eecs.berkeley.edu/~kubitron/cs252/handouts/papers/RooflineVyNoYellow.pdf)**
+  (Williams, Waterman & Patterson, 2009) — the operational-intensity model that tells
+  you whether a kernel *can* go faster at all, before you spend time trying.

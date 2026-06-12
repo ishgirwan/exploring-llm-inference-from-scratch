@@ -129,7 +129,25 @@ cost is small next to a layer's matmuls — but the reduction is over a 32k–25
 vector, it happens **every** decode token, and it sits on the loop's critical
 path, so a sloppy sampling kernel can still show up in token latency.
 
-## 7. What to carry forward
+## 7. Further reading
+
+The decoding methods in this doc, from a visual overview down to the papers that
+introduced each one:
+
+- **[How to generate text](https://huggingface.co/blog/how-to-generate)** (Patrick von
+  Platen, Hugging Face, 2020) — a diagram-rich tour of greedy, beam, temperature, top-k,
+  and top-p decoding; the single best overview of §2–§5.
+- **[Hierarchical Neural Story Generation](https://arxiv.org/abs/1805.04833)** (Fan et
+  al., 2018) — the paper that introduced top-k sampling (§4) as a fix for bland,
+  repetitive greedy text.
+- **[The Curious Case of Neural Text Degeneration](https://arxiv.org/abs/1904.09751)**
+  (Holtzman et al., 2019) — introduces top-p / nucleus sampling (§4) and shows *why*
+  truncating the unreliable tail of the distribution matters.
+- **[CTRL: A Conditional Transformer Language Model](https://arxiv.org/abs/1909.05858)**
+  (Keskar et al., 2019) — the source of the repetition penalty in §5 (the θ ≈ 1.2 that
+  discourages the model from looping).
+
+## 8. What to carry forward
 
 ```text
 softmax = logits → probabilities (§2)              -> M3, the stable-softmax kernel

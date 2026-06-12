@@ -210,7 +210,25 @@ Prefill computes the LM head only at the last position; decode computes it at th
 one position there is. The embedding is the same cheap gather in both phases — it
 never touches the Tensor Cores, because looking up a row is not arithmetic.
 
-## 7. What to carry forward
+## 7. Further reading
+
+The two ends of the model, from the idea of an embedding to the code that ties
+them together:
+
+- **[The Illustrated Word2vec](https://jalammar.github.io/illustrated-word2vec/)** (Jay
+  Alammar, 2019) — the clearest picture of what an embedding vector *is* and why a lookup
+  table can carry meaning; background for the table lookup in §2.
+- **[Using the Output Embedding to Improve Language Models](https://arxiv.org/abs/1608.05859)**
+  (Press & Wolf, 2016) — the paper behind weight tying (§4): why the input embedding and
+  the LM head can share one matrix, and what that does to quality and size.
+- **[nanoGPT](https://github.com/karpathy/nanoGPT)** (Andrej Karpathy) — its `model.py`
+  shows the token embedding, the `lm_head`, and the optional weight tying from §2–§4 in a
+  few readable lines.
+- **[Transformer Inference Arithmetic](https://kipp.ly/transformer-inference-arithmetic/)**
+  (Carol Chen / kipply, 2022) — the arithmetic that explains why a `[d_model × vocab]` LM
+  head is a surprisingly large matmul (§5), especially at small batch.
+
+## 8. What to carry forward
 
 ```text
 embedding = a [vocab × d_model] lookup table (§2)   -> M9, the block's front door

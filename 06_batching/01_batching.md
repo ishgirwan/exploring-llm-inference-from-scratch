@@ -239,7 +239,26 @@ prefill), *TPOT* / *ITL* (time per output token — the decode step time), and
 *throughput* (total tokens/sec across all sequences). M11 defines these and
 measures the tradeoff on a real model.
 
-## 9. What to carry forward
+## 9. Further reading
+
+Batching is the biggest throughput lever, so these go deep on both the arithmetic
+and the scheduler that exploits it:
+
+- **[Transformer Inference Arithmetic](https://kipp.ly/transformer-inference-arithmetic/)**
+  (Carol Chen / kipply, 2022) — the operational-intensity math behind "intensity ≈ B"
+  (§2), and why batching lifts the weight matmuls toward compute-bound but does nothing
+  for per-sequence attention (§4).
+- **[How continuous batching enables 23x throughput in LLM inference](https://www.anyscale.com/blog/continuous-batching-llm-inference)**
+  (Anyscale, 2023) — the diagram-driven contrast of static vs continuous batching (§6),
+  with benchmarks across real serving engines.
+- **[Orca: A Distributed Serving System for Transformer-Based Generative Models](https://www.usenix.org/conference/osdi22/presentation/yu)**
+  (Yu et al., OSDI 2022) — the paper that introduced iteration-level scheduling and
+  selective batching: the origin of the continuous batching in §6.
+- **[Efficient Memory Management for LLM Serving with PagedAttention](https://arxiv.org/abs/2309.06180)**
+  (Kwon et al., SOSP 2023) — the vLLM paper, on why KV-cache VRAM is the real cap on
+  batch size (§7) and how paging stretches it.
+
+## 10. What to carry forward
 
 ```text
 batching reuses weight loads, intensity ≈ B (§2)     -> M11, measured

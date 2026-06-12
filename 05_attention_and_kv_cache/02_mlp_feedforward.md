@@ -263,7 +263,25 @@ exactly the decode picture from
 [end-to-end §7](../02_cuda_software_stack/02_end_to_end_inference.md#7-stage-3--decode-the-autoregressive-loop),
 and since the MLP is most of the weights, it's most of that wait.
 
-## 8. What to carry forward
+## 8. Further reading
+
+Where each piece of the MLP comes from — the papers that defined it, plus one
+readable implementation:
+
+- **[Attention Is All You Need](https://arxiv.org/abs/1706.03762)** (Vaswani et al.,
+  2017) — §3.3 defines the position-wise feed-forward network this doc opens with: two
+  linear layers with a non-linearity between, applied to each token independently (§2).
+- **[Gaussian Error Linear Units (GELUs)](https://arxiv.org/abs/1606.08415)** (Hendrycks
+  & Gimpel, 2016) — the activation that replaced ReLU in transformers, and the baseline
+  SwiGLU is measured against (§3).
+- **[GLU Variants Improve Transformer](https://arxiv.org/abs/2002.05202)** (Noam Shazeer,
+  2020) — the two-page paper that introduced SwiGLU and the gated three-matrix FFN modern
+  models use (§4).
+- **[nanoGPT](https://github.com/karpathy/nanoGPT)** (Andrej Karpathy) — a ~300-line GPT
+  whose `MLP` module is exactly the expand → activate → contract block of §2, worth
+  reading before assembling it for real in M9.
+
+## 9. What to carry forward
 
 ```text
 the up → activation → down structure (§2)        -> M9, built into the layer

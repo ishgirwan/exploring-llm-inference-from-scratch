@@ -269,6 +269,29 @@ python -c "import torch; print(torch.version.cuda, torch.cuda.is_available())"
 python -c "import triton; print(triton.__version__)"
 ```
 
+## Further reading
+
+The primary docs behind each layer of the stack — the references I check when a
+version mismatch or a library choice actually bites:
+
+- **[CUDA C++ Programming Guide](https://docs.nvidia.com/cuda/cuda-c-programming-guide/)**
+  (NVIDIA) — the authoritative description of the programming model underneath "what
+  a CUDA program actually does": host vs device, kernel launches, and the memory
+  hierarchy.
+- **[CUDA Compatibility](https://docs.nvidia.com/deploy/cuda-compatibility/)**
+  (NVIDIA) — the exact rules behind "driver vs toolkit": why `nvidia-smi` (driver)
+  and `nvcc` (toolkit) report different CUDA versions, and when an old driver can run
+  a newer toolkit.
+- **[PyTorch CUDA semantics](https://docs.pytorch.org/docs/stable/notes/cuda.html)**
+  (PyTorch) — how the framework drives the GPU it ships its own CUDA runtime for:
+  asynchronous execution, streams, and the caching allocator.
+- **[CUTLASS](https://github.com/NVIDIA/cutlass)** (NVIDIA) — an open, readable
+  counterpart to the closed math libraries; the part of the library layer you can
+  actually study, and the bridge into the kernel-engineering track (Chapter 9).
+- **[Triton](https://triton-lang.org/)** (OpenAI) — the Python-like kernel language
+  from "what people actually use"; its tutorials are the gentlest way to write a GPU
+  kernel without CUDA C++, and the tool Chapter 7 builds on.
+
 Next: [End to end: a prompt becomes tokens](02_end_to_end_inference.md) — how all
 these layers cooperate to turn one prompt into generated text, from model load
 through the decode loop.

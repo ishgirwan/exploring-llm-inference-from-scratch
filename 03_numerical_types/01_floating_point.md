@@ -216,3 +216,24 @@ from the mantissa widths above. A dtype with ~3 decimal digits of precision
 (fp16) cannot match a reference to better than ~1e-3 absolute. A dtype with ~2
 (bf16) cannot match better than ~1e-2. Tighter tolerances are not "more careful
 testing" — they are indications of a bug.
+
+## Further reading
+
+The references behind each format and the precision rules — primary sources, plus
+one tool that makes the bit layout tangible:
+
+- **[What Every Computer Scientist Should Know About Floating-Point Arithmetic](https://docs.oracle.com/cd/E19957-01/806-3568/ncg_goldberg.html)**
+  (David Goldberg, 1991) — the classic deep dive into IEEE 754, rounding, and where
+  precision is lost; the foundation under "how a floating-point number is stored."
+- **[Float Toy](https://evanw.github.io/float-toy/)** (Evan Wallace) — an interactive
+  bit-level playground: flip sign / exponent / mantissa bits and watch the value
+  change. The fastest way to make the three-part split tangible.
+- **[FP8 Formats for Deep Learning](https://arxiv.org/abs/2209.05433)** (Micikevicius
+  et al., 2022) — the NVIDIA/Arm/Intel paper defining the e4m3 and e5m2 encodings from
+  the fp8 section, and why e4m3 bends the IEEE rules to buy range.
+- **[Train With Mixed Precision](https://docs.nvidia.com/deeplearning/performance/mixed-precision-training/index.html)**
+  (NVIDIA) — the practical rules behind accumulator precision: which operations must
+  stay in fp32, and why bf16/fp16 inputs with an fp32 accumulator is the safe default.
+- **[Microscaling Data Formats for Deep Learning](https://arxiv.org/abs/2310.10537)**
+  (Rouhani et al., 2023) — the open standard behind block-scaled fp8/fp4 (MXFP8,
+  NVFP4); where the dtype table is heading on Blackwell, picked up again in M28.

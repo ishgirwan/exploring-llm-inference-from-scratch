@@ -249,7 +249,29 @@ for omissions:
   ([end-to-end §10](../02_cuda_software_stack/02_end_to_end_inference.md#10-the-serving-engine-who-drives-the-loop);
   M18).
 
-## 7. What to carry forward
+## 7. Further reading
+
+One source per escape route in this doc — each is the paper that introduced the
+lever:
+
+- **[Fast Inference from Transformers via Speculative Decoding](https://arxiv.org/abs/2211.17192)**
+  (Leviathan et al., ICML 2023) — the speculative-decoding algorithm from §3: a small
+  draft model proposes tokens a big model verifies in parallel, spending idle decode
+  compute to emit more than one token per weight load.
+- **[Better & Faster Large Language Models via Multi-token Prediction](https://arxiv.org/abs/2404.19737)**
+  (Gloeckle et al., 2024) — multi-token prediction (§3): extra output heads that let a
+  model propose several future tokens at once.
+- **[GPTQ: Accurate Post-Training Quantization for Generative Pre-trained Transformers](https://arxiv.org/abs/2210.17323)**
+  (Frantar et al., ICLR 2023) — the weight-only quantization behind §4's "fewer bytes per
+  token," down to 3–4 bits with little quality loss.
+- **[GQA: Training Generalized Multi-Query Transformer Models](https://arxiv.org/abs/2305.13245)**
+  (Ainslie et al., 2023) — grouped-query attention (§4): sharing KV heads to shrink the
+  cache decode must stream each step.
+- **[DeepSeek-V2](https://arxiv.org/abs/2405.04434)** (DeepSeek-AI, 2024) — Multi-head
+  Latent Attention (§4), the most aggressive KV-shrinking lever: compress KV into a
+  low-rank latent and cache only that.
+
+## 8. What to carry forward
 
 ```text
 decode is bound by bytes-per-useful-token (§1)        -> the frame for M15–M19

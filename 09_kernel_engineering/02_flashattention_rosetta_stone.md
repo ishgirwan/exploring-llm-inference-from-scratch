@@ -252,7 +252,23 @@ FA walkthrough. Read those *before* `csrc/` and `hopper/`, which are dense.
 
 ---
 
-## 9. What to carry forward
+## 9. Further reading
+
+This doc reads FlashAttention across four languages; these are the papers behind
+each rung and the repo that holds them all:
+
+- **[FlashAttention](https://arxiv.org/abs/2205.14135)** (Dao et al., 2022) — the original
+  tiling + online-softmax loop (§1) that every later version keeps.
+- **[FlashAttention-2](https://arxiv.org/abs/2307.08691)** (Tri Dao, 2023) — better work
+  partitioning across thread blocks and warps; the rung that closed most of the gap to GEMM.
+- **[FlashAttention-3](https://arxiv.org/abs/2407.08608)** (Shah et al., 2024) — the Hopper
+  rewrite (§4): WGMMA + TMA asynchrony, warp specialization, and FP8, the lowest rung this
+  doc reads.
+- **[flash-attention (source)](https://github.com/Dao-AILab/flash-attention)** (Dao-AILab)
+  — the repository that is the Rosetta Stone of §2: the same algorithm in CUDA, CuTe C++,
+  CuTe DSL, and Triton, side by side.
+
+## 10. What to carry forward
 
 ```text
 the §1 loop (tiling + online softmax) is the WHOLE         -> M16, M25, M26

@@ -474,7 +474,34 @@ word "FlashAttention" in
 [end-to-end §5](../02_cuda_software_stack/02_end_to_end_inference.md#5-stage-2--prefill-a-transformer-layer-is-a-graph-of-kernels)
 now points at a real idea: *don't write the big matrix down.*
 
-## 10. What to carry forward
+## 10. Further reading
+
+The sources I keep going back to for this chapter — chosen for accurate
+explanations and, where it matters, diagrams that actually carry the idea rather
+than decorate it:
+
+- **[The Illustrated Transformer](https://jalammar.github.io/illustrated-transformer/)**
+  (Jay Alammar, 2018) — the pictures that made Q/K/V and multi-head attention
+  click for me. It animates the exact `Q·Kᵀ → softmax → ·V` flow from §3 with
+  worked shapes instead of equations.
+- **[Attention? Attention!](https://lilianweng.github.io/posts/2018-06-24-attention/)**
+  (Lilian Weng, 2018) — a careful, notation-clean walk from the general idea of
+  attention down to scaled dot-product and self-attention; the bridge I'd read
+  between the pictures and the original paper.
+- **[Attention Is All You Need](https://arxiv.org/abs/1706.03762)** (Vaswani et
+  al., 2017) — the primary source. Worth reading once for where the `1/√dₖ`
+  scaling, the multi-head split, and the whole shape come from, even though modern
+  decoder-only LLMs drop the encoder and its cross-attention.
+- **[FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness](https://arxiv.org/abs/2205.14135)**
+  (Dao et al., 2022) — the full version of §9: the online-softmax recurrence and
+  the tiling schedule that let attention skip the `N × N` matrix. This is the
+  paper M16 rebuilds.
+- **[GQA: Training Generalized Multi-Query Transformer Models from Multi-Head Checkpoints](https://arxiv.org/abs/2305.13245)**
+  (Ainslie et al., 2023) — the KV-shrinking lever from §7 stated precisely: how
+  sharing key/value heads across query heads trades a little quality for a much
+  smaller KV cache.
+
+## 11. What to carry forward
 
 ```text
 the Q·Kᵀ → scale → mask → softmax → ·V steps (§3)   -> M9, built for real

@@ -626,7 +626,26 @@ response. The user waits, almost entirely, on that loop turning — which is why
 the whole rest of this project is about making each turn move fewer bytes and
 keep the SMs busier.
 
-## 12. What to carry into the rest of the project
+## 12. Further reading
+
+This doc is the whole-pipeline map; these are the sources that go deeper on each
+stage without losing the end-to-end view:
+
+- **[Transformer Inference Arithmetic](https://kipp.ly/transformer-inference-arithmetic/)**
+  (Carol Chen / kipply, 2022) — first-principles math for why prefill is
+  compute-bound and decode is memory-bound (§5, §7), and what the KV cache costs; the
+  quantitative backbone of this doc.
+- **[Mastering LLM Techniques: Inference Optimization](https://developer.nvidia.com/blog/mastering-llm-techniques-inference-optimization/)**
+  (NVIDIA) — the same prefill → decode → KV-cache → batching story from NVIDIA, a good
+  second pass over §5–§10 with production framing.
+- **[Efficient Memory Management for LLM Serving with PagedAttention](https://arxiv.org/abs/2309.06180)**
+  (Kwon et al., SOSP 2023) — the vLLM paper: how the serving engine in §10 avoids KV
+  fragmentation with OS-style paging and continuous batching.
+- **[Large Transformer Model Inference Optimization](https://lilianweng.github.io/posts/2023-01-10-inference-optimization/)**
+  (Lilian Weng, 2023) — a well-diagrammed survey of the optimization landscape this
+  doc only gestures at in §9, from quantization to distillation.
+
+## 13. What to carry into the rest of the project
 
 The map this doc draws is the thing the roadmap topics fill in with real code
 and real numbers:

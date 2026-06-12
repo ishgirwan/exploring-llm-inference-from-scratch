@@ -104,7 +104,24 @@ This is the most speculative item here: the roadmap files it under "maybe later"
 (M32), so treat it as a direction I'm flagging, not a topic I've committed to
 building.
 
-## 6. What to carry forward
+## 6. Further reading
+
+One source per prefill lever in this doc, primary where possible:
+
+- **[FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness](https://arxiv.org/abs/2205.14135)**
+  (Dao et al., 2022) — the IO-aware attention kernel from §4 that cuts prefill's HBM
+  traffic, mattering most at long prompts; the kernel M16 builds.
+- **[SARATHI: Efficient LLM Inference by Piggybacking Decodes with Chunked Prefills](https://arxiv.org/abs/2308.16369)**
+  (Agrawal et al., 2023) — chunked prefill (§3): split a long prefill into chunks so it
+  stops blocking the decodes batched alongside it.
+- **[Efficiently Programming Large Language Models using SGLang](https://arxiv.org/abs/2312.07104)**
+  (Zheng et al., 2023) — RadixAttention, the prefix-reuse mechanism in §2: a radix tree
+  of KV caches that skips re-running a shared prefix.
+- **[DistServe: Disaggregating Prefill and Decoding for Goodput-optimized LLM Serving](https://arxiv.org/abs/2401.09670)**
+  (Zhong et al., OSDI 2024) — prefill/decode disaggregation (§5): run the two phases on
+  separate GPUs so prefill bursts don't stall decode.
+
+## 7. What to carry forward
 
 ```text
 prefill is compute-bound; N plays B's role (§1)   -> the frame; M11 (TTFT)

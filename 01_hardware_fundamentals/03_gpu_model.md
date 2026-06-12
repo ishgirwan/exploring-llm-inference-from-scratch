@@ -1082,7 +1082,30 @@ moved.
 | SSD | Solid-State Drive |
 | VRAM | Video Random-Access Memory |
 
-## 17. What to carry into the GPU architecture doc
+## 17. Further reading
+
+The resources I keep open while working through the GPU execution model — chosen
+because they explain the *why* (latency hiding, memory-bound behaviour), not just
+the API surface:
+
+- **[Programming Massively Parallel Processors](https://shop.elsevier.com/books/programming-massively-parallel-processors/hwu/978-0-323-91231-0)**
+  (Hwu, Kirk & El Hajj, 4th ed., 2022) — the standard text for threads, blocks, SMs,
+  warps, and shared-memory tiling (§2–§10) and the optimization patterns built on
+  them; the book this chapter's model is closest to.
+- **[CUDA C++ Programming Guide](https://docs.nvidia.com/cuda/cuda-c-programming-guide/)**
+  (NVIDIA) — the authoritative reference for the execution and memory model: the
+  thread hierarchy, warps and SIMT, shared memory, and the memory spaces behind
+  §10–§13.
+- **[How GPU Computing Works](https://www.youtube.com/watch?v=3l10o0DYJXg)** (Stephen
+  Jones, NVIDIA, GTC 2021) — a one-hour talk connecting the hardware to *why* GPUs
+  hide latency with many warps and so often end up memory-bound; the clearest spoken
+  version of §8 and §15.
+- **[GPU MODE lectures](https://github.com/gpu-mode/lectures)** (Mark Saroufim &
+  Andreas Köpf) — a community lecture series (slides and code on GitHub, recordings
+  on YouTube) that works through PMPP and real kernels, a good way to turn this model
+  into running code before M1.
+
+## 18. What to carry into the GPU architecture doc
 
 The important build-up across all three docs:
 
