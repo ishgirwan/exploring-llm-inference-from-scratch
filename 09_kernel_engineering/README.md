@@ -1,8 +1,8 @@
 # Chapter 9 — Kernel engineering
 
-Chapters 1–8 are the prerequisite reading before M0: they build the understanding
-to follow LLM inference from the first kernel to a serving engine. **This chapter is
-different.** It's the conceptual prework for the
+Chapters 1–8 are the foundation reading for the build journey (M0–M22): they build
+the understanding to follow LLM inference from the first kernel to a serving
+engine. **This chapter is different.** It's the conceptual prework for the
 [Phase 5 kernel-engineering track](../ROADMAP.md) (M23–M30) — the deeper, optional
 phase where the goal stops being "explain the gap to production kernels" and becomes
 "close it." Read it when that track begins, or out of curiosity now; it's *not*

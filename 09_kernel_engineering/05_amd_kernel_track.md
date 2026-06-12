@@ -197,7 +197,8 @@ to any kernel:
 ```
 
 Mixture-of-experts shows up here only because it's the kernel the public example happens
-to use; the method is kernel-agnostic. The point is that on AMD, step 5 — *beating the
+to use ([Chapter 5's MoE section](../05_attention_and_kv_cache/06_moe.md) explains the
+architecture and why a fused MoE kernel exists); the method is kernel-agnostic. The point is that on AMD, step 5 — *beating the
 shipped baseline* — is reachable on more kernels than it is on NVIDIA, because fewer of
 them are already tuned to the limit.
 

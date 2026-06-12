@@ -86,7 +86,10 @@ container so benchmarks don't drift as the software underneath changes. See
 Roughly 30 topics in five phases. The early phases are concrete; the later ones
 (especially Phase 5) are a guess and I expect to reorder them. Half-numbered items
 (M2.5 etc.) are short, one focused note. Time estimates assume ~10 hrs/week and are
-optimistic.
+optimistic. The fine-grained path — each module broken into small steps, with
+the reading braided in before and after each build, the questions to ask inside
+each lab, and what each stage hands to the next — lives in
+[`LEARNING_PATH.md`](LEARNING_PATH.md).
 
 ### Phase 1 — Foundations *(Colab T4 is enough)*
 
@@ -96,6 +99,7 @@ and how to write, check, measure and profile one.
 | # | Topic | What I'll build | Concepts |
 | --- | --- | --- | --- |
 | M0 | Setup & the harness | Container, GPU-info script, the shared benchmark + correctness harness | reproducibility; methodology before kernels |
+| M0.5 | Run a real model | Load a ~0.5B chat model on the T4, generate text, crudely time prefill vs decode | the whole journey made concrete on day one; TTFT and tokens/sec felt before they're formally defined |
 | M1 | Vector add | The same op in CUDA C++, Triton, PyTorch | host vs device, grid/block/thread, warp, kernel launch |
 | M2 | Memory bandwidth | Copy / scale / axpy kernels + bandwidth benchmark | global memory, coalescing, memory-bound kernels |
 | M2.5 | Profiling basics | First Nsight Systems trace; roofline model | timelines, achieved vs theoretical bandwidth, arithmetic intensity |
@@ -112,7 +116,9 @@ measured, profiled.
 ### Phase 2 — Putting a transformer together *(rent a 4090 or L4)*
 
 Assemble the kernels into a transformer block, build a KV cache, benchmark real
-serving engines.
+serving engines. One rule for M12–M14: I pin the engine versions (and record
+them in every results file) the day the module starts — vLLM and SGLang move
+monthly, and numbers taken across drifting versions aren't comparable.
 
 | # | Topic | What I'll build | Concepts |
 | --- | --- | --- | --- |
@@ -129,6 +135,13 @@ Checkpoint after M14: tag `v0.2`. Full kernel stack, a serving benchmark, the
 agent angle.
 
 ### Phase 3 — Optimization *(rent a 4090 / A100)*
+
+These levers buy speed by touching the model's outputs, so every Phase 3 report
+carries a **quality column** next to the speed column — perplexity and KL deltas
+against the unoptimized baseline, with a task-eval gate before calling a module
+done ([Chapter 4 §3](04_measurement/03_measuring_model_quality.md) defines the
+metrics). The one exception is proper speculative decoding, which is lossless by
+construction — there the quality column just says so.
 
 | # | Topic | What I'll build | Concepts |
 | --- | --- | --- | --- |
@@ -172,9 +185,9 @@ three languages together.
 | M24 | Tiled GEMM, three ways | The same tiled matmul in Triton → CuTe DSL → CUTLASS, each measured vs cuBLAS | the M6 ladder mapped across languages; which rung each tool makes explicit vs hides |
 | M25 | FlashAttention Rosetta Stone | An annotated read of FA1→FA4 side by side — CUDA (`csrc`), CuTe C++ (`hopper`), CuTe DSL (`flash_attn/cute`), Triton | what each rung forces you to write: SRAM tiling → WGMMA → TMA → warp specialization → Python codegen |
 | M26 | Build FlashAttention | Carry M16's simplified Triton FA further, then rebuild it in CuTe DSL; verify + benchmark vs `flash-attn` | online softmax, on-chip tiling, the producer/consumer split, accumulator precision |
-| M27 | Async pipelines & warp specialization | A warp-specialized, TMA-fed, multi-stage pipelined GEMM (Hopper) | TMA (a DMA engine), WGMMA, `mbarrier`, producer/consumer warps, pipeline depth |
+| M27 | Async pipelines & warp specialization | A warp-specialized, TMA-fed, multi-stage pipelined GEMM (Hopper) | TMA (a DMA engine), WGMMA, `mbarrier`, producer/consumer warps, pipeline depth, thread-block clusters + distributed shared memory |
 | M28 | Blackwell tensor cores | Port a kernel to Blackwell: tcgen05 MMA (UMMA), Tensor Memory, low precision | 5th-gen Tensor Cores, TMEM, 2-CTA MMA, MXFP8 / NVFP4 microscaling |
-| M29 | Fusion & perf portability | A fused kernel (fused MLP, or attention + bias + softmax) autotuned across two arches | epilogue + kernel fusion, autotuning, why the best config differs per GPU |
+| M29 | Fusion & perf portability | A fused kernel (fused MLP, or attention + bias + softmax) autotuned across two arches | epilogue + kernel fusion, persistent kernels, autotuning, why the best config differs per GPU |
 | M30 | Beat-the-baseline capstone | Take one kernel and tune it until it matches or beats a strong reference on a target GPU | the honest bar: correctness + speedup vs a *real* baseline (cuBLAS / flash-attn), documented end to end |
 
 Checkpoint after M30: tag `v2.0`. I can author a custom kernel that holds its own
@@ -187,8 +200,18 @@ CUDA C++, Composable Kernel ↔ CUTLASS, **FlyDSL** ↔ CuTe DSL, AITER ↔ Flas
 optional AMD arm — an MI300X pass over M24/M26/M30 using Triton as the cross-vendor
 bridge and FlyDSL as the CuTe-DSL-equivalent depth, on the same per-second rental model.
 
-Maybe later, if I still have energy: MoE inference (M31), disaggregated
-prefill/decode (M32).
+Two modules sit outside the phases, numbered after them but not gated on Phase 5:
+
+- **M31 — MoE inference** *(planned; slots naturally right after M20)*. A toy
+  MoE block — router, top-k dispatch, grouped-GEMM expert matmuls — verified and
+  benchmarked, then an expert-parallel pass across two GPUs. Most current open
+  frontier models (DeepSeek-V3, Llama 4, Qwen3's larger variants, Kimi K2,
+  GPT-OSS) are MoE, so this stopped being optional;
+  [Chapter 5's MoE section](05_attention_and_kv_cache/06_moe.md) is the prework.
+- **M32 — disaggregated prefill/decode** *(maybe, if energy remains)*. Industry
+  practice already (Mooncake, vLLM, NVIDIA Dynamo —
+  [Chapter 8 §3](08_optimizing_inference/03_scaling_past_one_gpu.md)), but a
+  heavy multi-node build for one person; it stays a stretch goal.
 
 ## 6. Checkpoints
 
@@ -212,7 +235,7 @@ not just understand.
 ## 7. Repo layout
 
 ```
-README.md  ROADMAP.md  FAILURES.md  CHANGELOG.md  LICENSE
+README.md  ROADMAP.md  LEARNING_PATH.md  FAILURES.md  CHANGELOG.md  LICENSE
 01_hardware_fundamentals/   chapter 1, four sections (circuits → memory → GPU
                             execution model → GPU architecture); the running
                             example z = x+y → C[i] = A[i]+B[i] → C = A×B
@@ -222,17 +245,25 @@ README.md  ROADMAP.md  FAILURES.md  CHANGELOG.md  LICENSE
                             prefill → decode, kernel selection, serving engines
 03_numerical_types/         chapter 3; IEEE 754, fp32/fp16/bf16/tf32/fp8,
                             int8/int4 quantization, accumulator precision
-04_measurement/             chapter 4; benchmarking methodology and the
-                            first-run effects warm-up has to hide
+04_measurement/             chapter 4; benchmarking methodology, the
+                            first-run effects warm-up has to hide, and
+                            measuring model quality (perplexity, KL, task
+                            evals) — the column next to every speed column
 05_attention_and_kv_cache/  chapter 5, anatomy of a forward pass: attention
                             (Q·Kᵀ → softmax → ·V) + the KV cache, the MLP
                             (SwiGLU), the two ends (embedding + LM head), the
                             elementwise glue (RMSNorm, RoPE, residuals), and
-                            sampling — every op the end-to-end §5 map deferred
+                            sampling — every op the end-to-end §5 map deferred;
+                            then the two architecture variants that bend the
+                            dense map: MoE (router, experts, total vs active
+                            params) and attention variants (sliding window,
+                            linear/SSM hybrids, sparse attention)
 06_batching/                chapter 6; batching as the throughput lever —
                             intensity ≈ B, continuous batching, why it helps
                             the weight matmuls but not attention, KV-cache
-                            VRAM as the batch-size cap; the bridge into M11–M13
+                            VRAM as the batch-size cap; plus the host side —
+                            the per-step CPU loop, async engines, structured
+                            decoding; the bridge into M11–M13
 07_writing_and_tuning_kernels/  chapter 7; what a kernel is made of and how to
                             write + tune one, using matmul — the optimization
                             ladder (coalescing, tiling, registers, Tensor
@@ -244,7 +275,10 @@ README.md  ROADMAP.md  FAILURES.md  CHANGELOG.md  LICENSE
                             quantization, GQA/MQA/MLA KV shrinking) and prefill's
                             levers (prefix reuse, chunked prefill, FlashAttention,
                             prefill/decode disaggregation), each pinned to the
-                            bottleneck it attacks; bridge to M11–M19
+                            bottleneck it attacks; then scaling past one GPU —
+                            tensor/pipeline/expert/data parallelism, what the
+                            collectives cost, disaggregation as the split by
+                            phase; bridge to M11–M20 and M31/M32
 09_kernel_engineering/      chapter 9 (Phase 5 prework, NOT pre-M0 reading); CuTe
                             DSL foundations (layouts, tensors, atoms, the hardware
                             glossary), the FlashAttention Rosetta Stone — one
@@ -254,8 +288,9 @@ README.md  ROADMAP.md  FAILURES.md  CHANGELOG.md  LICENSE
                             Composable Kernel, FlyDSL, AITER), and a practice method
                             (one variable per experiment, cheap-first); bridge to M23–M30
                             Each chapter has a README.md indexing its sections.
-                            Read top to bottom before M0; chapters grow as
-                            the project does.
+                            Readable straight through, or pulled section by
+                            section as LEARNING_PATH.md calls them; chapters
+                            grow as the project does.
 setup/        docker container, provisioning scripts, check_gpu.py
 common/       the shared harness — bench.py, correctness.py,
               results_schema.py, plot.py
@@ -272,16 +307,27 @@ every later number trustworthy and comparable.
 
 ## 8. Following along
 
-Welcome. Read the eight prerequisite chapters top to bottom first — start at
+Welcome. Two ways in, depending on how you learn:
+
+**The interleaved track (how I actually move).** Read the short on-ramp —
+[Chapter 1 §3 (the GPU execution model)](01_hardware_fundamentals/03_gpu_model.md),
+[Chapter 2 §1 (the stack)](02_cuda_software_stack/01_the_stack.md), and
+[Chapter 4 §1 (benchmarking)](04_measurement/01_benchmarking.md), ~2 hrs —
+then go straight to M0 and follow [`LEARNING_PATH.md`](LEARNING_PATH.md),
+which braids the remaining chapter sections into the labs just-in-time:
+a section right before the build that needs it, another right after the
+measurement it explains. Chapters 5–6 unseal at the transformer-assembly
+modules (M9–M14), Chapter 7 rung by rung inside M6, Chapter 8 at the
+optimization phase (M15–M20). Chapter 9 is separate either way — prework for
+the Phase 5 track (M23–M30); save it for when that track begins.
+
+**The library track.** If reading-first suits you, the eight chapters are
+written to be read straight through — start at
 [`01_hardware_fundamentals/README.md`](01_hardware_fundamentals/README.md) and
-follow each chapter's "Next chapter" link through `02_cuda_software_stack/`,
-`03_numerical_types/`, `04_measurement/`, `05_attention_and_kv_cache/`,
-`06_batching/`, `07_writing_and_tuning_kernels/`, and `08_optimizing_inference/`
-(~6-8 hrs total). The last three — batching, kernel-tuning, and
-optimizing-inference — are really the bridges into the M-topic work (serving,
-kernel-building, and optimization) rather than pre-M0 setup. (Chapter 9, kernel
-engineering, is separate — prework for the Phase 5 track, M23–M30, not one of the
-pre-M0 eight; save it for when that track begins.) Then start at M0 with me. Don't trust my numbers, re-run them; every one has a
+follow each chapter's "Next chapter" link through `08_optimizing_inference/`
+(~7–9 hrs), then begin at M0.
+
+Either way: don't trust my numbers, re-run them; every one has a
 script behind it. This will be wrong in places. When I find a mistake I fix it
 and note it in `FAILURES.md` rather than quietly editing history. Spot
 something before I do? Open an issue.

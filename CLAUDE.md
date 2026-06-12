@@ -6,15 +6,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 A **public, first-person learning journey** about how LLM inference runs on GPUs —
 kernels, memory, profiling, serving engines, and (Phase 5) writing competitive
-custom kernels. Right now it is **prose only**: 35 Markdown files across nine
-chapters plus `ROADMAP.md`. There is **no code, no build, no tests, and no
-lint** — the labs and benchmarks (modules M0–M30) are *planned* in `ROADMAP.md` but
-not yet built. "Working in this repo" almost always means **authoring or editing
+custom kernels. Right now it is **prose only**: 40 Markdown files across nine
+chapters plus `ROADMAP.md`, a short root `README.md`, and `LEARNING_PATH.md`
+(the stage-by-stage path that braids chapter reading into the labs — read-before /
+build / in-lab questions / read-after / takeaway / carry-forward per stage).
+There is **no code, no build, no tests, and no lint** — the labs and benchmarks
+(modules M0–M32) are *planned* in `ROADMAP.md` and `LEARNING_PATH.md` but not
+yet built. "Working in this repo" almost always means **authoring or editing
 Markdown docs**, not running anything. Do not invent build/test commands.
 
-`ROADMAP.md` is the entry point and master plan (there is no root README). It
-defines the M-module/phase model: **Chapters 1–8 are pre-M0 prerequisite reading;
-Chapter 9 is Phase-5 prework, read later, not before M0.** Each chapter is a
+`ROADMAP.md` is the entry point and master plan (the root `README.md` is a short
+pointer into it). It
+defines the M-module/phase model: **Chapters 1–8 are the reference library —
+readable straight through, or pulled section-by-section just-in-time as
+`LEARNING_PATH.md` braids them into the labs; Chapter 9 is Phase-5 prework, read
+later, not before M0.** Each chapter is a
 directory (`NN_topic/`) containing a `README.md` that indexes its sections and
 numbered `NN_section.md` docs.
 

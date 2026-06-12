@@ -100,9 +100,11 @@ underused, and vice versa.
 *Prefill/decode disaggregation* runs the two phases on **separate** GPU pools — one
 sized for compute-bound prefill, one for memory-bound decode — and ships the KV
 cache between them. Each pool then runs near the bottleneck it was provisioned for.
-This is the most speculative item here: the roadmap files it under "maybe later"
-(M32), so treat it as a direction I'm flagging, not a topic I've committed to
-building.
+Industry-side this is production practice; [the multi-GPU
+doc](03_scaling_past_one_gpu.md) places it among the ways to split inference
+across GPUs. Build-side it's the heaviest item here: the roadmap files it under
+"maybe later" (M32), a direction I'm flagging rather than a topic I've committed
+to building.
 
 ## 6. Further reading
 
@@ -130,7 +132,7 @@ chunked prefill keeps prefill from blocking        -> M12 (vLLM)
   decode (§3)
 FlashAttention cuts attention's HBM traffic,        -> M16, build + benchmark
   matters most at large N (§4)
-prefill/decode disaggregation (§5)                  -> M32, "maybe later" — speculative
+prefill/decode disaggregation (§5)                  -> M32, still "maybe later"
 ```
 
 The one sentence to keep: **prefill is already compute-bound — `N` prompt tokens

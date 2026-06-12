@@ -10,8 +10,11 @@ traffic. Around that core the chapter assembles the rest of the pass — the
 **MLP** (§2), the model's two ends (**embedding** and the **LM head**, §3), the
 elementwise **glue** that threads through every layer (§4), and **sampling**,
 which turns the final scores into the next token (§5). Together they explain the
-whole `end-to-end §5` layer graph, end to end. The map for the M3.5–M17 build
-topics.
+whole `end-to-end §5` layer graph, end to end. Two closing sections then bend
+that dense map toward the models actually shipping: **mixture of experts** (§6),
+where the MLP becomes many expert MLPs behind a router, and **attention
+variants** (§7), where the KV cache stops growing linearly. The map for the
+M3.5–M17 (and M31) build topics.
 
 ## Sections
 
@@ -22,6 +25,8 @@ topics.
 | 3 | [The two ends: embedding & LM head](03_embedding_and_lm_head.md) | The two ends as mirror images; the embedding as a `[vocab × d_model]` lookup (a gather, not a matmul); the LM head as the transposed projection to logits; weight tying; why the LM head is one of the largest single matrices; the prefill last-position shortcut |
 | 4 | [The elementwise glue: RMSNorm, RoPE, residuals](04_elementwise_glue.md) | The non-matmul glue on the FP lanes — RMSNorm (rescale to RMS 1) vs LayerNorm; RoPE (rotating Q,K so attention sees relative position); residual adds and the residual stream; why all three are memory-bound and the prime targets for fusion |
 | 5 | [From logits to a token: sampling](05_sampling.md) | Logits → one token; softmax to a distribution; temperature (sharpen/flatten, `T→0` = greedy); top-k (fixed) vs top-p/nucleus (adaptive) truncation; repetition penalty; greedy vs sampling; why it's a per-token reduction over the whole vocabulary |
+| 6 | [Mixture of experts](06_moe.md) | The MLP replaced by many expert MLPs behind a top-k router; total vs active params (what VRAM holds vs what one token reads); the worked router example; the current MoE frontier (DeepSeek-V3, Llama 4, Qwen3, GPT-OSS, Kimi K2); what it does to inference — per-expert batch ≈ B·k/E, grouped-GEMM kernels, all-experts-resident forcing multi-GPU |
+| 7 | [Attention variants](07_attention_variants.md) | The four verbs applied to the KV cache — shrink (GQA/MLA), cap (sliding windows, Gemma 3's 5:1 local:global), replace (linear attention / SSM hybrids: Mamba, Jamba, Qwen3-Next), select (DeepSeek's sparse attention) — and what each does to cache size, decode reads, and the engine's cache manager |
 
 Prerequisites: [Chapter 2 §2 — End to end: a prompt becomes tokens](../02_cuda_software_stack/02_end_to_end_inference.md) and [Chapter 1 §3 — The GPU execution model](../01_hardware_fundamentals/03_gpu_model.md).
 Next chapter: [Chapter 6 — Batching](../06_batching/README.md).
