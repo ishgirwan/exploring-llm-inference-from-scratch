@@ -353,6 +353,46 @@ more complete low-level model at CUTLASS's foundation**, which is why the newest
 atoms (Blackwell tcgen05/TMEM) appear there first. For a Triton-first learner,
 Gluon/TLX is the gentler descent; CuTe DSL is the deeper, hardware-leading commitment.
 
+### Do you ever still need CUDA C++? (the rung below CuTe DSL)
+
+§7 so far weighed CuTe DSL against the rung *above* it (Triton). The mirror
+question kept tripping me up: with CuTe DSL handing me layouts, atoms, and warp
+roles in Python, is there ever a reason to drop to the rung *below* — raw CUDA C++
+(with CUTLASS as its library, §1)? The same two-gap split answers it, one rung lower:
+
+```text
+  PERFORMANCE gap?    NONE. CuTe DSL emits the same PTX → SASS and drives the same
+                      hardware primitives (§6) as CUDA C++, so it hits the same
+                      ceiling (§1). Speed is NEVER the reason to descend to C++.
+  EXPRESSIVENESS gap? SOMETIMES. A few things the DSL's model can't say — Gap B,
+                      one rung below the Triton↔CuTe version above.
+```
+
+So §1 already settled performance: never a reason. The only pulls down to CUDA C++
+are expressiveness, and there are three:
+
+```text
+  1. The brand-new instruction no atom wraps yet. When the one instruction I need
+     isn't exposed (a cache hint, a just-shipped op), I embed it as inline PTX —
+     and inline PTX lives inside CUDA C++. The 1% surgical case.
+  2. Work outside the layout/tensor/atom model. CuTe is dense tensor algebra
+     (GEMM, attention, conv); irregular, pointer-chasing, non-tensor kernels fit
+     CUDA C++'s general model, not CuTe's.
+  3. Reading the bedrock. I read CUDA C++ / CUTLASS to see what the DSL compiles
+     into, even when I author entirely in the DSL.
+```
+
+Case 1 is the inline-PTX escape hatch in
+[Reading PTX §6](04_reading_and_optimizing_ptx.md#6-when-to-actually-touch-ptx);
+hand-writing a *whole* kernel in CUDA C++ or PTX is essentially never.
+
+**Reseal:** for the tensor-shaped kernels this project is about — attention, GEMM,
+fused MLP, quantized matmul — CuTe DSL covers nearly all of the authoring at full
+speed (FlashAttention-4 is the proof, §1). CUDA C++ doesn't vanish; it shrinks to
+three roles — the substrate everything compiles toward, the escape hatch for the 1%
+the DSL can't express, and the bedrock I read — none of which is "the language I
+write peak kernels in" anymore.
+
 ---
 
 ## 8. Further reading
@@ -386,6 +426,8 @@ the hardware glossary: WGMMA, TMA, tcgen05, TMEM,        -> M27 (Hopper), M28 (B
   warp specialization, mbarrier (§6)
 the two gaps: A=compiler quality (closeable), B=         -> M24, M26 — attribute each
   expressiveness (needs a lower language); Gluon/TLX (§7)      % of the Triton↔CuTe gap
+CuTe DSL vs CUDA C++: same speed; drop to C++ only for   -> M24, M27/M30 — the 1%
+  an unexposed instruction or non-tensor work (§7)            inline-PTX / bedrock case
 ```
 
 The one sentence to keep: **CuTe DSL is Python that runs once at compile time to

@@ -255,7 +255,8 @@ FA walkthrough. Read those *before* `csrc/` and `hopper/`, which are dense.
 ## 9. Further reading
 
 This doc reads FlashAttention across four languages; these are the papers behind
-each rung and the repo that holds them all:
+each rung, the repo that holds them all, and how the newest rung kept moving
+after its paper:
 
 - **[FlashAttention](https://arxiv.org/abs/2205.14135)** (Dao et al., 2022) — the original
   tiling + online-softmax loop (§1) that every later version keeps.
@@ -267,6 +268,13 @@ each rung and the repo that holds them all:
 - **[flash-attention (source)](https://github.com/Dao-AILab/flash-attention)** (Dao-AILab)
   — the repository that is the Rosetta Stone of §2: the same algorithm in CUDA, CuTe C++,
   CuTe DSL, and Triton, side by side.
+- **[Making FlashAttention-4 Faster for Inference](https://modal.com/blog/flash-attention-4-faster)**
+  (Frye, Feng & Wang — Modal, 2026) — the kernel's evolution continuing in public: six
+  merged PRs retrofitting FA4 for decode — split-KV parallelism (one query token can't
+  fill a GPU by query-tiling alone), paged KV via `cp.async` where TMA wants dense tiles,
+  GQA packing, FP8 — each move paired with its bottleneck and a measured delta. By their
+  numbers FA4 decode ran *slower* than FlashAttention-2 on a B200 until split-KV landed:
+  "fastest attention kernel" is always a claim about a workload regime.
 
 ## 10. What to carry forward
 

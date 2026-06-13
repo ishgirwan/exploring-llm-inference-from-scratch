@@ -154,7 +154,7 @@ full-attention row of a table that now has four more rows.
 
 ## 6. Further reading
 
-One primary source per verb:
+One primary source per verb, plus the tooling that makes new variants cheap to try:
 
 - **[Mistral 7B](https://arxiv.org/abs/2310.06825)** (Jiang et al., 2023) — the
   paper that mainstreamed sliding-window attention and the ring-buffer ("rolling
@@ -170,6 +170,11 @@ One primary source per verb:
   attention layers are kept.
 - **[DeepSeek-V3.2: Pushing the Frontier of Open Large Language Models](https://arxiv.org/abs/2512.02556)**
   (DeepSeek-AI, 2025) — DSA, the production sparse attention of §4.
+- **[FlexAttention: The Flexibility of PyTorch with the Performance of FlashAttention](https://pytorch.org/blog/flexattention/)**
+  (Team PyTorch, 2024) — the API that turns most of this doc's variants into a few
+  lines: a `score_mod` function plus a block-sparse mask, compiled by `torch.compile`
+  into one fused attention kernel (the blog reports ~90% of FlashAttention-2's forward
+  speed on an A100). Why trying a new variant no longer starts with writing a kernel.
 
 ## 7. What to carry forward
 

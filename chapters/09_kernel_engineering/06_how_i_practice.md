@@ -155,7 +155,32 @@ run, kill it the moment the run ends.
 
 ---
 
-## 6. Further reading
+## 6. Where AI fits in the practice — and where it can't
+
+This whole journey is AI-assisted, so the method has to say what that assistance
+actually buys — because the leverage is lopsided:
+
+```text
+  AI accelerates (use it freely)                AI can't substitute (mine to do)
+  ──────────────────────────────                ────────────────────────────────
+  reading profiler output — paste an ncu        the PREDICTION step: a guess the
+    section, get bottleneck candidates            tool makes teaches ME nothing
+  translating between Triton / CuTe DSL /       intuition — stalls and locality are
+    CUDA: the patterns map, models know them      felt by running code, not described
+  dense papers and whitepapers, walked          genuinely novel optimizations: models
+    through at my pace                            know the literature, not past it
+  first-draft kernels I then profile and tune   the newest silicon — model knowledge
+  reviewing layout / alignment constraints        lags the hardware by months
+```
+
+The two columns reduce to one rule, and it's already in this repo's
+[standing rules](../../LEARNING_PATH.md): **the prediction is written down before
+the measurement, and it's mine.** AI joins *after* the number lands, when it needs
+an explanation — the same slot where theory enters the build loop. Used that way it
+compresses the reading reps of §3 dramatically; used as an oracle before the run,
+it turns the experiment into a transcription exercise and the rep teaches nothing.
+
+## 7. Further reading
 
 The method here is "read how it got faster, then rebuild a rung." These are the sources
 I lean on for that — each is a kernel with its improvement *visible*:
@@ -171,7 +196,7 @@ I lean on for that — each is a kernel with its improvement *visible*:
 - **[Colfax Research — CUTLASS tutorials](https://research.colfax-intl.com/category/papers/tutorials/)**
   — step-by-step kernel building, the rung-by-rung craft of stage 1.
 
-## 7. What to carry forward
+## 8. What to carry forward
 
 ```text
 change ONE dimension per experiment or you can't        -> how I set up every
@@ -186,6 +211,8 @@ the sequence: read → GEMM-vs-cuBLAS → attention →        -> a lens over M2
   arch sweep → model capstone → AMD (§5)                      + the AMD arm (Ch9 §5)
 GEMM is stage 1: hello-world, unforgiving baseline,      -> M23, M24
   reused by every later kernel (§5)
+AI accelerates the reading/translation/first-draft       -> every module; the labs'
+  reps; the pre-measurement prediction stays mine (§6)        prediction discipline
 ```
 
 The one sentence to keep: **Practice only compounds when each experiment changes exactly

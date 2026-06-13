@@ -195,7 +195,8 @@ against good hand-written code, and explain exactly why it's fast.
 
 M30 also carries a stretch outcome past the private benchmark: **upstream
 something**. A kernel improvement or fix merged into a library other people run —
-FlashInfer, vLLM, SGLang, flash-attn, or AITER on the AMD arm, where the
+FlashInfer, vLLM, SGLang, flash-attn, TensorRT-LLM, upstream PyTorch or Triton,
+Liger-Kernel on the training side, or AITER on the AMD arm, where the
 contribution gap is widest ([Chapter 9 §5](chapters/09_kernel_engineering/05_amd_kernel_track.md)) —
 is the one artifact that proves the skill to someone who wasn't watching; a
 speedup that lives only in my own repo proves it only to me.

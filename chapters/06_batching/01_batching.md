@@ -257,6 +257,11 @@ and the scheduler that exploits it:
 - **[Efficient Memory Management for LLM Serving with PagedAttention](https://arxiv.org/abs/2309.06180)**
   (Kwon et al., SOSP 2023) — the vLLM paper, on why KV-cache VRAM is the real cap on
   batch size (§7) and how paging stretches it.
+- **[nano-vLLM](https://github.com/GeeeekExplorer/nano-vllm)** (GeeeekExplorer, 2025) —
+  the vLLM-style serving core — scheduler, prefix caching, tensor parallelism, CUDA
+  graphs — rebuilt in ~1,200 lines of readable Python at speeds comparable to vLLM's.
+  Small enough to read in a sitting: the bridge between this doc's diagrams and a real
+  engine's codebase, and the natural warm-up for M12.5's toy scheduler.
 
 ## 10. What to carry forward
 
