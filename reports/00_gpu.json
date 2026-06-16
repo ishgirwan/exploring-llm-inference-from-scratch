@@ -1,0 +1,16 @@
+{
+  "timestamp_utc": "2026-06-16T14:08:18+00:00",
+  "torch_version": "2.11.0+cu128",
+  "torch_cuda_version": "12.8",
+  "driver_version": "580.82.07",
+  "device_name": "Tesla T4",
+  "compute_capability": "7.5",
+  "sm_count": 40,
+  "total_vram_GiB": 14.56,
+  "spec_sheet": {
+    "memory_bandwidth_GBs": 320,
+    "fp32_TFLOPs": 8.1,
+    "fp16_tensor_TFLOPs": 65,
+    "datasheet": "NVIDIA Tesla T4 datasheet -- verify these and add the URL"
+  }
+}
