@@ -29,6 +29,9 @@ and the measurement harness (M0) is the first real build.
   path calls them.
 - **Chapter 9** — kernel-engineering prework for the final phase; read it when
   that phase starts, not first.
+- **[`FURTHER_LISTENING.md`](FURTHER_LISTENING.md)** — the audio companion: the
+  podcasts, lectures, and paper/blog overviews I put on during workouts and
+  commutes, sorted by what survives having no screen.
 
 Don't trust my numbers — every one has a script behind it; re-run them. When I
 find a mistake I fix it and log it rather than quietly editing history.
