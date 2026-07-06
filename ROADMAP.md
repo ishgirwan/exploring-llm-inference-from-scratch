@@ -329,9 +329,10 @@ to something whole.
 | `v2.0` | M30 | A custom kernel that matches/beats a strong baseline — and the skill to write more |
 
 Stop at `v0.2` and I've still finished a real thing. That's the point of tagging.
-`v1.0` is the complete inference story; `v2.0` is the kernel-engineering ceiling,
-and it's optional — reach it only if the earlier phases leave me wanting to build,
-not just understand.
+`v1.0` is the complete inference story; `v2.0` is the kernel-engineering ceiling.
+Since the agentic turn (§2.5), `v2.0` is no longer the optional summit — it's what
+the main line climbs toward, and the tags can land out of order: the kernel spine
+runs ahead while the deferred serving and scale modules fill in `v1.0` behind it.
 
 ## 7. Repo layout
 
