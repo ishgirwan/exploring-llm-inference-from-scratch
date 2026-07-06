@@ -32,13 +32,72 @@ to earn its place by answering a question the code already raised.
 The loop, every topic:
 
 ```
-1. BUILD     Simplest version that works. .
+1. BUILD     Simplest version that works.
 2. VERIFY    Prove it's correct against something I trust (usually PyTorch).
 3. MEASURE   Benchmark it properly.
 4. PROFILE   See where the time went.
 5. EXPLAIN   Learn the concept behind the numbers. Improve the code.
 6. WRITE     What I built, what surprised me, what broke.
 ```
+
+## 2.5 The agentic turn *(July 2026)*
+
+The plan below assumed I'd write every kernel by hand. I'm changing that: an
+agentic system writes the kernels now, and I do everything else.
+
+The loop above survives — only who does step 1 changes:
+
+```text
+1. BUILD     ← the agent
+2. VERIFY    ← me
+3. MEASURE   ← me
+4. PROFILE   ← me
+5. EXPLAIN   ← me
+6. WRITE     ← me
+```
+
+Three reasons, honestly:
+
+- **Writing kernel code is the skill that's depreciating; judging it is the one
+  that's appreciating.** Models produce plausible CUDA and Triton today. Whether
+  a kernel is correct at low precision, whether a speedup is real or a
+  benchmarking artifact, which of five working candidates actually matters —
+  none of that comes free with the model, and it's what I'm actually here to
+  learn.
+- **It makes this finishable.** Thirty modules of hand-written kernels at ~10
+  hrs/week is over a year, and §6 already admits what happens to solo projects
+  that size. Delegating BUILD collapses the timeline without touching the
+  learning, because the learning was never in typing the kernel — §3 already
+  said the clean final code is the least interesting thing in this repo.
+- **The agent and its harness become artifacts of this repo, not tools hidden
+  behind it.** The field has a measurement problem: agents that "beat"
+  benchmarks by gaming them (Sakana's AI CUDA Engineer shipped 150× claims that
+  turned out to be a gamed eval). A harness that can't be fooled is worth more
+  than one more agent that can. `common/` was always the load-bearing part of
+  this repo; now that's literal.
+
+What changes in practice:
+
+- **Predict before measuring**, every module. I read the agent's kernel, write
+  down the expected speedup and why in hardware terms, *then* profile. The gap
+  between my prediction and the number is the curriculum now. Reports gain one
+  heading: **Prediction vs. actual**.
+- Hand-writing becomes hand-surgery: change a tile size, predict the effect,
+  measure it. One variable per experiment — Chapter 9 §6 already said this.
+- `agent/` holds the agentic system. `common/` grows teeth: correctness checks
+  that hold at low precision, timing that resists gaming, and a cost column —
+  dollars of API spend per achieved speedup.
+- M1–M6 become the agent's **calibration ladder**: known-answer problems where
+  I can trust the reference, judged by the harness before either of us faces
+  problems where nobody knows the answer.
+- The live target: the [GPU MODE](https://www.gpumode.com) kernel competitions —
+  M30's "beat the baseline" bar, made external, on someone else's leaderboard,
+  against everyone else's agents and humans. This also flips §5's default: the
+  kernel-track reorder is now the main line, not the alternate.
+
+What doesn't change: the chapters, the honesty rules, don't-trust-my-numbers,
+and `FAILURES.md`. If anything the failure log gets richer — the agent fails in
+ways I wouldn't have thought to try.
 
 ## 3. Layout of a topic
 
@@ -84,7 +143,10 @@ container so benchmarks don't drift as the software underneath changes. See
 ## 5. The plan
 
 Roughly 30 topics in five phases. The early phases are concrete; the later ones
-(especially Phase 5) are a guess and I expect to reorder them. Half-numbered items
+(especially Phase 5) are a guess and I expect to reorder them. One reorder is
+already decided: since the agentic turn (§2.5), the kernel-track reorder at the
+end of this section is the main line, and the full phase order below is the map
+of the territory rather than the walking order. Half-numbered items
 (M2.5 etc.) are short, one focused note. Time estimates assume ~10 hrs/week and are
 optimistic. The fine-grained path — each module broken into small steps, with
 the reading braided in before and after each build, the questions to ask inside
@@ -224,8 +286,9 @@ Two modules sit outside the phases, numbered after them but not gated on Phase 5
 ### The kernel-track reorder
 
 The phase order above is the full inference journey, and it treats Phase 5 as the
-optional summit. §9's second ambition inverts that: when kernel authorship is the
-goal that leads, most of Phases 2–4 stops being prerequisite and becomes breadth.
+optional summit. §9's second ambition — the project's default since the agentic
+turn (§2.5) — inverts that: when kernel work is the goal that leads, most of
+Phases 2–4 stops being prerequisite and becomes breadth.
 Phase 5's real prerequisites are only Triton fluency (M1–M6), profiler fluency
 (M2.5, then M8's Nsight Compute work), and the attention algorithm
 ([Chapter 5 §1](chapters/05_attention_and_kv_cache/01_attention.md), exercised in M16). So

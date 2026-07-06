@@ -1,10 +1,13 @@
 # Learning LLM inference, from the GPU up
 
 I'm learning how LLMs run on GPUs — kernels, memory, profiling, serving
-engines, and eventually writing competitive kernels myself — and doing it in
-the open. This repo is the trail: the notes I worked out, the code, the
-numbers, and what broke along the way. It isn't a course; when I explain
-something here I'm really explaining it to myself.
+engines, and eventually shipping competitive kernels — and doing it in the
+open. Since [the agentic turn](ROADMAP.md#25-the-agentic-turn-july-2026), an
+agentic system I'm building writes the kernels; my job is everything that has
+to stay honest around it — verifying, measuring, profiling, explaining. This
+repo is the trail: the notes I worked out, the code, the numbers, and what
+broke along the way. It isn't a course; when I explain something here I'm
+really explaining it to myself.
 
 ## Where things stand
 
@@ -12,7 +15,12 @@ The prerequisite reading is written: nine chapters, from how a GPU executes
 code up to multi-GPU serving and kernel engineering. The build phase — some 30
 modules of kernels, benchmarks, and serving experiments on rented GPUs — has
 begun at the bottom: the repo skeleton (license, lint, tests, CI) is in place,
-and the measurement harness (M0) is the first real build.
+and the measurement harness (M0) is the first real build. The build runs
+through [the agentic turn](ROADMAP.md#25-the-agentic-turn-july-2026): an agent
+takes the BUILD step, I keep the rest of the loop, and
+[the kernel-track reorder](ROADMAP.md#the-kernel-track-reorder) is the main
+line — with the [GPU MODE](https://www.gpumode.com) competitions as the live
+external bar.
 
 ## How to read this
 
