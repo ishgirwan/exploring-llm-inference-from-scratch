@@ -2,6 +2,9 @@
 .claude/
 .remember/
 
+# Secrets — never committed; .env.example documents the required keys
+.env
+
 # OS / editor cruft
 .DS_Store
 Thumbs.db

@@ -15,11 +15,14 @@ build / in-lab questions / read-after / takeaway / carry-forward per stage), and
 auto-skip (`@pytest.mark.gpu` tests skip without CUDA), and a CPU-only CI
 workflow. **Lint is `ruff check .`; tests are `pytest`** — both run inside
 `.venv/` locally. The labs and benchmarks themselves (modules M0–M32) are
-*planned* in `ROADMAP.md` and `LEARNING_PATH.md` but not yet built; the harness
+*planned* in `ROADMAP.md` and `LEARNING_PATH.md` but not yet built; the from-scratch harness
 internals (`bench.py`, `correctness.py`, `results_schema.py`) and
-`BENCHMARKING.md` are deliberately left for the author to write as M0 learning
-work — do not scaffold them unasked. "Working in this repo" still mostly means
-**authoring or editing Markdown docs**.
+`BENCHMARKING.md` remain the author's own post-sprint learning work — do not
+scaffold them unasked. **During an active sprint (see `SPRINT.md`) code work is
+real**: `common/` is the human-written judge wrapper (the vendored official GPU
+MODE `eval.py` plus seal / prediction-gate / cost-ledger layers — pairing work
+with the author; the agent never writes `common/`), and `agent/` holds the
+kernel-writing agent loop.
 
 `ROADMAP.md` is the entry point and master plan (the root `README.md` is a short
 pointer into it). It
@@ -30,8 +33,13 @@ later, not before M0.** Each chapter is a
 directory (`chapters/NN_topic/`) containing a `README.md` that indexes its
 sections and numbered `NN_section.md` docs.
 
+`SPRINT.md` is the **operational source of truth for what to do next** during an
+active build sprint — read it immediately after this file; it is kept current
+across machines and sessions.
+
 Hardware reality that shapes every doc: **there is no local NVIDIA GPU (remote-only).**
-Nothing is run locally; GPU work happens on rented GPUs at M-module time.
+Nothing GPU runs locally; GPU work happens on Modal (per-second rentals) and on
+GPU MODE's competition runners.
 
 ## Authoring conventions (the core of this repo)
 
@@ -91,10 +99,14 @@ not discoverable from any single file:
 
 ## Git and environment
 
-- Windows + PowerShell is the default shell. **PowerShell here-strings (`@'…'@`)
-  only work in the PowerShell tool — in the Bash tool they are literal and corrupt
-  the input.** For multi-line commit messages, write the message to a temp file and
-  `git commit -F`, then delete it.
+- The repo is worked on from multiple machines — Windows (PowerShell) and macOS
+  (zsh); check the session's platform before assuming shell behavior.
+  **PowerShell here-strings (`@'…'@`) only work in the PowerShell tool — in the
+  Bash tool they are literal and corrupt the input.** For multi-line commit
+  messages, write the message to a temp file and `git commit -F`, then delete it.
+- The Python env is **uv-managed**: `uv sync` to set up, `uv run …` to execute,
+  `uv add …` for dependencies — never pip-install globally. Secrets live in
+  `.env` (gitignored; `.env.example` documents the required keys).
 - End commit messages with the trailer `Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>`.
 - `LF will be replaced by CRLF` warnings on `git add` are harmless (Windows line
   endings).
