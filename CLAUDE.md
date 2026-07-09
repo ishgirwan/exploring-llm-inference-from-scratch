@@ -107,7 +107,9 @@ not discoverable from any single file:
 - The Python env is **uv-managed**: `uv sync` to set up, `uv run …` to execute,
   `uv add …` for dependencies — never pip-install globally. Secrets live in
   `.env` (gitignored; `.env.example` documents the required keys).
-- End commit messages with the trailer `Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>`.
+- **No AI attribution in commits.** Do not add `Co-Authored-By: Claude …` trailers,
+  "Generated with Claude Code" lines, or any other AI-attribution text to commit
+  messages (history was rewritten once to remove them — don't reintroduce).
 - `LF will be replaced by CRLF` warnings on `git add` are harmless (Windows line
   endings).
 - `.claude/` and `.remember/` are gitignored session tooling — never commit them.
