@@ -338,9 +338,14 @@ runs ahead while the deferred serving and scale modules fill in `v1.0` behind it
 
 ```
 README.md  ROADMAP.md  LEARNING_PATH.md  FAILURES.md  CHANGELOG.md  LICENSE
+SPRINT.md                   operational state of the active build sprint: the
+                            ladder, locked decisions, next action, machine setup
 FURTHER_LISTENING.md        the audio companion: podcasts, lectures, and paper/
                             blog overviews for dead time, sorted by what survives
                             having no screen
+FURTHER_READING.md          the reading list behind the agentic turn: the field
+                            survey, competition platforms, eval-rigor papers, and
+                            rival kernel-agent frameworks, annotated
 pyproject.toml  uv.lock     the Python project — uv-managed; ruff + pytest config
 chapters/                   the reference library; each chapter has a README.md
                             indexing its sections, readable straight through or

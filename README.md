@@ -40,6 +40,9 @@ external bar.
 - **[`FURTHER_LISTENING.md`](FURTHER_LISTENING.md)** — the audio companion: the
   podcasts, lectures, and paper/blog overviews I put on during workouts and
   commutes, sorted by what survives having no screen.
+- **[`FURTHER_READING.md`](FURTHER_READING.md)** — the reading list behind the
+  agentic turn: the field survey, the competition platforms, the eval-rigor
+  papers, and the rival kernel-agent frameworks, each annotated.
 
 Don't trust my numbers — every one has a script behind it; re-run them. When I
 find a mistake I fix it and log it rather than quietly editing history.
